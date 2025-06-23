@@ -1,0 +1,33 @@
+
+
+
+    h={-1,-1,-1}
+    h[1]=sim.getObject('/FLwheel_motor')
+    h[2]=sim.getObject('/FRwheel_motor')
+    h[3]=sim.getObject('/RRwheel_motor')
+    h[4]=sim.getObject('/RLwheel_motor')
+    v1=100*math.pi/180
+
+	#move forward:
+    sim.setJointTargetVelocity(h[1],v1)
+    sim.setJointTargetVelocity(h[2],-v1)
+    sim.setJointTargetVelocity(h[3],-v1)
+    sim.setJointTargetVelocity(h[4],v1)
+
+ 	#move_backward
+    sim.setJointTargetVelocity(h[1],-v1)
+    sim.setJointTargetVelocity(h[2],v1)
+    sim.setJointTargetVelocity(h[3],v1)
+    sim.setJointTargetVelocity(h[4],-v1)
+	
+	#move right:
+    sim.setJointTargetVelocity(h[1],v1)
+    sim.setJointTargetVelocity(h[2],v1)
+    sim.setJointTargetVelocity(h[3],-v1)
+    sim.setJointTargetVelocity(h[4],-v1)
+
+#move left:
+    sim.setJointTargetVelocity(h[1],-v1)
+    sim.setJointTargetVelocity(h[2],-v1)
+    sim.setJointTargetVelocity(h[3],v1)
+    sim.setJointTargetVelocity(h[4],v1)
