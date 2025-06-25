@@ -1,2 +1,5 @@
 # sim_app/shared.py
-latest_data = {"S300": [], "S3001": []}
+from collections import defaultdict
+
+# Dynamically stores any signal name with default as empty list
+latest_data = defaultdict(list)
