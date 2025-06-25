@@ -1,24 +1,27 @@
 import math
 import asyncio
-import numpy as np
 from sim_app.shared import latest_data
+from sim_app.obstacle_awareness import is_path_clear
 
-OBSTACLE_THRESHOLD = 0.5      # meters
-SPEED = 0.3                   # m/s
-WHEEL_RADIUS = 0.05           # meters
-SAFE_STOP_ATTEMPTS = 10       # limit retries before emergency stop
-SLOWDOWN_DISTANCE = 0.2       # start slowing down near the goal
+# Constants
+OBSTACLE_THRESHOLD = 0.5       # meters
+SPEED = 0.3                    # m/s
+WHEEL_RADIUS = 0.05            # meters
+SAFE_STOP_ATTEMPTS = 10
+SLOWDOWN_DISTANCE = 0.2
 
 class OmniRobotController:
     def __init__(self):
         self.initialized = False
         self.obstacle_attempts = 0
+        self.phase = "x"  # Movement phase: 'x', then 'y', then 'done'
 
     async def get_yaw(self):
         euler = await self.sim.getObjectOrientation(self.robot, -1)
-        return euler[2]  # yaw (Z-axis rotation)
+        return euler[2]
 
     async def init_handles(self, sim):
+        self.sim = sim
         self.wheels = {
             "fl": await sim.getObject('/Omnirob0/FLwheel_motor'),
             "fr": await sim.getObject('/Omnirob0/FRwheel_motor'),
@@ -26,62 +29,17 @@ class OmniRobotController:
             "rr": await sim.getObject('/Omnirob0/RRwheel_motor'),
         }
         self.robot = await sim.getObject('/Omnirob0')
-        self.sim = sim
+
+        # ✅ Set proper joint force for motion
+        for joint in self.wheels.values():
+            await sim.setJointForce(joint, 100)
+
         self.initialized = True
         print("🔧 Omniwheel controller initialized.")
 
     async def get_position(self):
         pos = await self.sim.getObjectPosition(self.robot, -1)
         return pos[:2]
-
-    def distance(self, a, b):
-        return math.hypot(b[0] - a[0], b[1] - a[1])
-
-    def obstacle_in_path(self, points, x, y, dx, dy):
-        for pt in points:
-            px, py = pt[0], pt[1]
-            vx, vy = px - x, py - y
-            dist = math.hypot(vx, vy)
-
-            if dist < OBSTACLE_THRESHOLD:
-                dot = (vx * dx + vy * dy) / (dist + 1e-6)
-                angle = math.acos(max(-1, min(1, dot)))
-                if angle < math.radians(25):
-                    return True
-        return False
-
-    def compute_wheel_velocities(self, vx, vy):
-        """
-        Converts robot-local vx, vy velocities into individual wheel velocities.
-        Wheel mounting verified using:
-            - FL: forward-left
-            - FR: forward-right
-            - RL: rear-left
-            - RR: rear-right
-
-        Verified against the Lua test:
-            forward  => FL:+v, FR:-v, RR:-v, RL:+v
-            backward => FL:-v, FR:+v, RR:+v, RL:-v
-            right    => FL:+v, FR:+v, RR:-v, RL:-v
-            left     => FL:-v, FR:-v, RR:+v, RL:+v
-        """
-
-        fl =  vx + vy  # ⬆️ + ➡️
-        fr = -vx + vy  # ⬆️ - ➡️
-        rr = -vx - vy  # ⬇️ - ➡️
-        rl =  vx - vy  # ⬇️ + ➡️
-
-        # Normalize if needed
-        max_val = max(abs(fl), abs(fr), abs(rl), abs(rr))
-        if max_val > 1:
-            fl /= max_val
-            fr /= max_val
-            rl /= max_val
-            rr /= max_val
-
-        scale = SPEED / WHEEL_RADIUS
-        return fl * scale, fr * scale, rl * scale, rr * scale
-
 
     async def stop(self):
         print("🛑 Emergency Stop.")
@@ -94,6 +52,8 @@ class OmniRobotController:
         dy = goal[1] - current[1]
         dist = math.hypot(dx, dy)
 
+        print(f"📍 Current position: {current}")
+        print(f"dx: {dx:.2f}, dy: {dy:.2f}")
         print(f"📍 Distance to goal: {dist:.2f} meters")
 
         if dist < 0.05:
@@ -101,34 +61,67 @@ class OmniRobotController:
             await self.stop()
             return True
 
-        # Get robot orientation
-        theta = await self.get_yaw()
-        cos_t = math.cos(theta)
-        sin_t = math.sin(theta)
+        vx, vy = 0.0, 0.0
 
-        # Transform world delta into robot-local frame
-        vx_world = 0
-        vy_world = 0
+        if self.phase == "x":
+            if abs(dx) < 0.01:
+                print("✅ X axis aligned. Switching to Y axis.")
+                self.phase = "y"
+                return False
 
-        # Align Y first (forward/backward movement)
-        if abs(dy) > 0.05:
-            vy_world = SPEED if dy > 0 else -SPEED
-            print("⬆️ Aligning Y axis")
+            direction = "right" if dx > 0 else "left"
+            if not is_path_clear(direction):
+                print(f"❌ Blocked on {direction} during X alignment. Switching to Y phase temporarily.")
+                self.phase = "y"
+                return False
 
-        # Then align X (sideways movement)
-        elif abs(dx) > 0.05:
-            vx_world = SPEED if dx > 0 else -SPEED
-            print("➡️ Moving along X axis")
+            self.obstacle_attempts = 0
+            vx = -SPEED if dx > 0 else SPEED
+            print(f"➡️ Aligning X axis (moving {direction})")
 
-        # Convert to robot-local velocities
-        vx_local =  cos_t * vx_world + sin_t * vy_world
-        vy_local = -sin_t * vx_world + cos_t * vy_world
+        elif self.phase == "y":
+            if abs(dy) < 0.05:
+                print("✅ Y axis aligned.")
+                # Switch back to X if not yet fully aligned
+                if abs(dx) > 0.01:
+                    print("↩️ Returning to X axis for final alignment.")
+                    self.phase = "x"
+                    return False
+                self.phase = "done"
+                await self.stop()
+                return True
 
-        # Calculate wheel velocities
-        w_fl, w_fr, w_rl, w_rr = self.compute_wheel_velocities(vx_local, vy_local)
-        await self.sim.setJointTargetVelocity(self.wheels["fl"], w_fl)
-        await self.sim.setJointTargetVelocity(self.wheels["fr"], w_fr)
-        await self.sim.setJointTargetVelocity(self.wheels["rl"], w_rl)
-        await self.sim.setJointTargetVelocity(self.wheels["rr"], w_rr)
+            direction = "back" if dy > 0 else "front"
+            if not is_path_clear(direction):
+                print(f"❌ Blocked on {direction} during Y alignment. Returning to X phase.")
+                self.phase = "x"
+                return False
+
+            self.obstacle_attempts = 0
+            vy = -SPEED if dy > 0 else SPEED
+            print(f"⬆️ Aligning Y axis (moving {direction})")
+
+        # Wheel velocities
+        fl_vel = fr_vel = rl_vel = rr_vel = 0.0
+
+        if vx != 0.0:
+            fl_vel =  vx
+            fr_vel =  vx
+            rl_vel = -vx
+            rr_vel = -vx
+        elif vy != 0.0:
+            fl_vel = vy
+            fr_vel = -vy
+            rl_vel = vy
+            rr_vel = -vy
+
+        scale = 1 / WHEEL_RADIUS
+        print(f"⚙️ Wheel Speeds: FL={fl_vel:.2f}, FR={fr_vel:.2f}, RL={rl_vel:.2f}, RR={rr_vel:.2f}")
+
+        await self.sim.setJointTargetVelocity(self.wheels["fl"], fl_vel * scale)
+        await self.sim.setJointTargetVelocity(self.wheels["fr"], fr_vel * scale)
+        await self.sim.setJointTargetVelocity(self.wheels["rl"], rl_vel * scale)
+        await self.sim.setJointTargetVelocity(self.wheels["rr"], rr_vel * scale)
 
         return False
+
