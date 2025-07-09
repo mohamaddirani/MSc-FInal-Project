@@ -6,7 +6,7 @@ import json
 import sim_app.shared as shared
 
 # Initialize OpenAI client with your API key
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="removed for security reasons")
 
 # Predefined map of destination labels to coordinates
 location_map = {
