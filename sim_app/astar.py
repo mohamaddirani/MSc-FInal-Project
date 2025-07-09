@@ -5,6 +5,7 @@ AStar search
 author: Ashwin Bose (@atb033)
 
 """
+from sim_app.astar_env import grid_to_meters
 
 class AStar():
     def __init__(self, env):
@@ -44,18 +45,25 @@ class AStar():
             current = min(temp_dict, key=temp_dict.get)
 
             if self.is_at_goal(current, agent_name):
-                return self.reconstruct_path(came_from, current)
+                #return self.reconstruct_path(came_from, current)
+                if self.is_at_goal(current, agent_name):
+                    path = self.reconstruct_path(came_from, current)
+                    print("\n🚦 A* planned path:")
+                    for i, p in enumerate(path):
+                        print(f"  [{i}] Grid: {p} => Meters: {grid_to_meters(*p)}")
+                return path
+
 
             open_set -= {current}
             closed_set |= {current}
 
             neighbor_list = self.get_neighbors(current)
 
-            for neighbor in neighbor_list:
+            for (neighbor, move_cost) in neighbor_list:
                 if neighbor in closed_set:
                     continue
                 
-                tentative_g_score = g_score.setdefault(current, float("inf")) + step_cost
+                tentative_g_score = g_score.setdefault(current, float("inf")) + move_cost
 
                 if neighbor not in open_set:
                     open_set |= {neighbor}

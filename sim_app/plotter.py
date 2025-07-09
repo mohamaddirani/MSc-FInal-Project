@@ -1,15 +1,21 @@
 # sim_app/plotter.py
 import matplotlib.pyplot as plt
-from sim_app.shared import latest_data
 
-def plot_lidar():
-    plt.clf()
-    for label, points in latest_data.items():
-        if points:
-            xs = [pt[0] for pt in points]
-            ys = [pt[1] for pt in points]
-            plt.scatter(xs, ys, s=2, label=label)
+def plot_lidar(path=None, start=None, goal=None, grid=None):
+    plt.close('all') 
+    plt.figure()
+    if grid is not None:
+        plt.imshow(grid, cmap='gray_r', origin='upper')
+    if path:
+        px, py = zip(*path)
+        plt.plot(px, py, color='blue', linewidth=2, label='A* path')
+    if start:
+        plt.scatter(*start, color='green', label='Start')
+    if goal:
+        plt.scatter(*goal, color='red', label='Goal')
+    plt.title("A* Path Planning Visualization")
     plt.legend()
-    plt.axis('equal')
     plt.grid(True)
-    plt.pause(0.01)
+    plt.savefig(f"path_{start}_{goal}.png")
+
+

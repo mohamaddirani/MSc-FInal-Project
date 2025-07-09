@@ -11,16 +11,29 @@ async def fetch_sensor_data(sim, signal_name):
             points = cbor2.loads(decoded)
             if isinstance(points, list):
                 latest_data[signal_name] = points
-                print(f"📡 [{signal_name}] {len(points)} points")
-                for pt in points[:5]:
-                    x, y, z, dist = pt
-                    print(f"   -> x={x:.2f}, y={y:.2f}, z={z:.2f}, d={dist:.2f}")
             else:
-                print(f"⚠️ [{signal_name}] Decoded data is not a list: {type(points)}")
                 latest_data[signal_name] = []
+
+            points = latest_data.get(signal_name, [])
+            if points:
+                closest_dist = float('inf')
+                closest_point = None
+                for pt in points:
+                    if len(pt) >= 4:
+                        x, y, z, dist = pt[:4]
+                        if dist < closest_dist:
+                            closest_dist = dist
+                            closest_point = (x, y, dist)
+                    else:
+                        print(f"⚠️ Unexpected point format in {signal_name}: {pt}")
+                return closest_point if closest_point is not None else None
+            else:
+                return None
+
         except Exception as e:
             print(f"❌ Failed to decode sensor data for {signal_name}: {e}")
             latest_data[signal_name] = []
+            return None
     else:
-        print(f"⏳ [{signal_name}] No data yet...")
         latest_data[signal_name] = []
+        return None
