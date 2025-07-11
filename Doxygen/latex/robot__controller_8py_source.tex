@@ -1,0 +1,41 @@
+\doxysection{robot\+\_\+controller.\+py}
+\hypertarget{robot__controller_8py_source}{}\label{robot__controller_8py_source}\index{sim\_app/robot\_controller.py@{sim\_app/robot\_controller.py}}
+\mbox{\hyperlink{robot__controller_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00001}\mbox{\hyperlink{namespacerobot__controller}{00001}}\ \textcolor{comment}{\#\ sim\_app/robot\_controller.py}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00003}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller}{00003}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller}{OmniRobotController}}:}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00004}00004\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00005}00005\ \textcolor{stringliteral}{\ \ \ \ Controller\ class\ for\ an\ omnidirectional\ robot\ in\ a\ simulation\ environment.}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00006}00006\ \textcolor{stringliteral}{\ \ \ \ Methods}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00007}00007\ \textcolor{stringliteral}{\ \ \ \ -\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00008}00008\ \textcolor{stringliteral}{\ \ \ \ \_\_init\_\_():}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00009}00009\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ Initializes\ the\ controller\ state.}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00010}00010\ \textcolor{stringliteral}{\ \ \ \ async\ init\_handles(sim,\ robot\_name):}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00011}00011\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ Asynchronously\ initializes\ simulation\ object\ handles\ for\ the\ robot\ and\ its\ wheels.}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ Sets\ the\ joint\ force\ for\ each\ wheel\ motor\ and\ marks\ the\ controller\ as\ initialized.}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ async\ get\_position():}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ Asynchronously\ retrieves\ the\ current\ (x,\ y)\ position\ of\ the\ robot\ in\ the\ simulation.}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00016}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a0e9ca0740856359d425f5507d5b46a59}{00016}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a0e9ca0740856359d425f5507d5b46a59}{\_\_init\_\_}}(self):}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00017}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a67f278fbe3e74c6bce53c237e074e593}{00017}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a67f278fbe3e74c6bce53c237e074e593}{initialized}}\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00019}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a525117c79a991c333b4bae4c09c64975}{00019}}\ \ \ \ \ \textcolor{keyword}{async\ def\ }\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a525117c79a991c333b4bae4c09c64975}{init\_handles}}(self,\ sim,\ robot\_name):}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00020}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf}{00020}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf}{sim}}\ =\ sim}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00021}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a8a6543485dd086aaa6fb28784d887834}{00021}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a8a6543485dd086aaa6fb28784d887834}{wheels}}\ =\ \{}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00022}00022\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fl"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/FLwheel\_motor'}),}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00023}00023\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fr"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/FRwheel\_motor'}),}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00024}00024\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rl"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/RLwheel\_motor'}),}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00025}00025\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rr"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/RRwheel\_motor'}),}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00027}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a4455483709fc8e02e7f9b544d2ff70cd}{00027}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a4455483709fc8e02e7f9b544d2ff70cd}{robot}}\ =\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}'})}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ joint\ \textcolor{keywordflow}{in}\ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a8a6543485dd086aaa6fb28784d887834}{wheels}}.values():}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ \ \ \ \ await\ sim.setJointForce(joint,\ 100)}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a67f278fbe3e74c6bce53c237e074e593}{initialized}}\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}🔧\ \{robot\_name\}\ controller\ initialized."{}})}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00033}\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a00c90013c9cf49523cc4c39afc1a21f8}{00033}}\ \ \ \ \ \textcolor{keyword}{async\ def\ }\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a00c90013c9cf49523cc4c39afc1a21f8}{get\_position}}(self):}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ pos\ =\ await\ self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf}{sim}}.getObjectPosition(self.\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a4455483709fc8e02e7f9b544d2ff70cd}{robot}},\ -\/1)}
+\DoxyCodeLine{\Hypertarget{robot__controller_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ pos[:2]}
+
+\end{DoxyCode}

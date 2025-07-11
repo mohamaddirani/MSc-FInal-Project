@@ -1,6 +1,18 @@
 # sim_app/robot_controller.py
 
 class OmniRobotController:
+    """
+    Controller class for an omnidirectional robot in a simulation environment.
+    Methods
+    -------
+    __init__():
+        Initializes the controller state.
+    async init_handles(sim, robot_name):
+        Asynchronously initializes simulation object handles for the robot and its wheels.
+        Sets the joint force for each wheel motor and marks the controller as initialized.
+    async get_position():
+        Asynchronously retrieves the current (x, y) position of the robot in the simulation.
+    """
     def __init__(self):
         self.initialized = False
 

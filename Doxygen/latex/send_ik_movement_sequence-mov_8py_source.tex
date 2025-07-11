@@ -1,0 +1,107 @@
+\doxysection{send\+Ik\+Movement\+Sequence-\/mov.py}
+\hypertarget{send_ik_movement_sequence-mov_8py_source}{}\label{send_ik_movement_sequence-mov_8py_source}\index{RemoteApi/sendIkMovementSequence-\/mov.py@{RemoteApi/sendIkMovementSequence-\/mov.py}}
+\mbox{\hyperlink{send_ik_movement_sequence-mov_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00001}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov}{00001}}\ \textcolor{comment}{\#\ Make\ sure\ to\ have\ CoppeliaSim\ running,\ with\ followig\ scene\ loaded:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00002}00002\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00003}00003\ \textcolor{comment}{\#\ scenes/messaging/ikMovementViaRemoteApi.ttt}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00004}00004\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00005}00005\ \textcolor{comment}{\#\ Do\ not\ launch\ simulation,\ then\ run\ this\ script}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00006}00006\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00007}00007\ \textcolor{comment}{\#\ The\ client\ side\ (i.e.\ this\ script)\ depends\ on:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00008}00008\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00009}00009\ \textcolor{comment}{\#\ sim.py,\ simConst.py,\ and\ the\ remote\ API\ library\ available}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00010}00010\ \textcolor{comment}{\#\ in\ programming/remoteApiBindings/lib/lib}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00011}00011\ \textcolor{comment}{\#\ Additionally\ you\ will\ need\ the\ python\ math\ and\ msgpack\ modules}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00013}00013\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00014}00014\ \ \ \ \ \textcolor{keyword}{import}\ sim}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00015}00015\ \textcolor{keywordflow}{except}:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00016}00016\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00017}00017\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'"{}sim.py"{}\ could\ not\ be\ imported.\ This\ means\ very\ probably\ that'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00018}00018\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'either\ "{}sim.py"{}\ or\ the\ remoteApi\ library\ could\ not\ be\ found.'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00019}00019\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Make\ sure\ both\ are\ in\ the\ same\ folder\ as\ this\ file,'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00020}00020\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'or\ appropriately\ adjust\ the\ file\ "{}sim.py"{}'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00021}00021\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00022}00022\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00024}00024\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00025}00025\ \textcolor{keyword}{import}\ msgpack}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00027}00027\ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Program\ started'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00028}00028\ \mbox{\hyperlink{namespacesim_aa15b32d604719a02a8fdaf117ee9362a}{sim.simxFinish}}(-\/1)\ \textcolor{comment}{\#\ just\ in\ case,\ close\ all\ opened\ connections}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00029}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_af179ed37114f1ddd05492e7541b255cd}{00029}}\ clientID=\mbox{\hyperlink{namespacesim_aa0278273e11a7dd23bb6924cbd8a128c}{sim.simxStart}}(\textcolor{stringliteral}{'127.0.0.1'},19997,\textcolor{keyword}{True},\textcolor{keyword}{True},5000,5)\ \textcolor{comment}{\#\ Connect\ to\ CoppeliaSim}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00030}00030\ \textcolor{keywordflow}{if}\ clientID!=-\/1:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Connected\ to\ remote\ API\ server'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00033}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a6a6f83909765c3e073a6406304673a63}{00033}}\ \ \ \ \ executedMovId=\textcolor{stringliteral}{'notReady'}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00034}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a5f988aca64e6c7d19750ea365f152aa2}{00034}}\ \ \ \ \ targetArm=\textcolor{stringliteral}{'/LBR4p'}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00035}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a803a343a499c37000ec752c9b47b5dad}{00035}}\ \ \ \ \ stringSignalName=targetArm+\textcolor{stringliteral}{'\_executedMovId'}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00037}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a4a2e389d83e50d92ef222c1e416a560e}{00037}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a4a2e389d83e50d92ef222c1e416a560e}{waitForMovementExecuted}}(id):}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \textcolor{keyword}{global}\ executedMovId}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{keyword}{global}\ stringSignalName}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ executedMovId!=id:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ retCode,s=\mbox{\hyperlink{namespacesim_adfed967dbdd35694cf69ea72286f7d6e}{sim.simxGetStringSignal}}(clientID,stringSignalName,sim.simx\_opmode\_buffer)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ retCode==sim.simx\_return\_ok:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ type(s)==bytearray:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ s=s.decode(\textcolor{stringliteral}{'ascii'})\ \textcolor{comment}{\#\ python2/python3\ differences}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ executedMovId=s}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00047}00047\ \ \ \ \ \textcolor{comment}{\#\ Start\ streaming\ stringSignalName\ string\ signal:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00048}00048\ \ \ \ \ \mbox{\hyperlink{namespacesim_adfed967dbdd35694cf69ea72286f7d6e}{sim.simxGetStringSignal}}(clientID,stringSignalName,sim.simx\_opmode\_streaming)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00050}00050\ \ \ \ \ \textcolor{comment}{\#\ Set-\/up\ some\ movement\ variables:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00051}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a12fb86f9c50ec89ff7f728f73f8fe637}{00051}}\ \ \ \ \ maxVel=0.1}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00052}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a73850c79b534d42519846f84cf733dc1}{00052}}\ \ \ \ \ maxAccel=0.01}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00054}00054\ \ \ \ \ \textcolor{comment}{\#\ Start\ simulation:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00055}00055\ \ \ \ \ \mbox{\hyperlink{namespacesim_a89c634a979e4418b3e2f457a98f92542}{sim.simxStartSimulation}}(clientID,sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00057}00057\ \ \ \ \ \textcolor{comment}{\#\ Wait\ until\ ready:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00058}00058\ \ \ \ \ \mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a4a2e389d83e50d92ef222c1e416a560e}{waitForMovementExecuted}}(\textcolor{stringliteral}{'ready'})\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00060}00060\ \ \ \ \ \textcolor{comment}{\#\ Get\ initial\ pose:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00061}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_ac6354319d516ea1ae608a4616b6ef3e8}{00061}}\ \ \ \ \ r=\mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_getPoseAndConfig'},[],[],[],\textcolor{stringliteral}{''},sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00062}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_afd9a0a185b41ad6566e0716fd1e84fd0}{00062}}\ \ \ \ \ initialPoseAndConfig=r[2]}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00063}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a276efd28242f8f7c21605cf1bf5ec8c4}{00063}}\ \ \ \ \ initialPose=initialPoseAndConfig[:7]}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00065}00065\ \ \ \ \ \textcolor{comment}{\#\ Send\ first\ movement\ sequence:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00066}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a6760b88da917c600aa8504362350712a}{00066}}\ \ \ \ \ targetPose=[0,0,0.85,0,0,0,1]}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00067}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a1f5083b6e31d09762655d005dfc96e91}{00067}}\ \ \ \ \ movementData=\{\textcolor{stringliteral}{"{}id"{}}:\textcolor{stringliteral}{"{}movSeq1"{}},\textcolor{stringliteral}{"{}type"{}}:\textcolor{stringliteral}{"{}mov"{}},\textcolor{stringliteral}{"{}targetPose"{}}:targetPose,\textcolor{stringliteral}{"{}maxVel"{}}:maxVel,\textcolor{stringliteral}{"{}maxAccel"{}}:maxAccel\}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00068}\mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a5404bd67b76e52706af357e672893cd4}{00068}}\ \ \ \ \ packedMovementData=msgpack.packb(movementData)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00069}00069\ \ \ \ \ \mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_movementDataFunction'},[],[],[],packedMovementData,sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00071}00071\ \ \ \ \ \textcolor{comment}{\#\ Execute\ first\ movement\ sequence:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00072}00072\ \ \ \ \ \mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_executeMovement'},[],[],[],\textcolor{stringliteral}{'movSeq1'},sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00073}00073\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00074}00074\ \ \ \ \ \textcolor{comment}{\#\ Wait\ until\ above\ movement\ sequence\ finished\ executing:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00075}00075\ \ \ \ \ \mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a4a2e389d83e50d92ef222c1e416a560e}{waitForMovementExecuted}}(\textcolor{stringliteral}{'movSeq1'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00077}00077\ \ \ \ \ \textcolor{comment}{\#\ Send\ second\ and\ third\ movement\ sequence,\ where\ third\ one\ should\ execute\ immediately\ after\ the\ second\ one:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00078}00078\ \ \ \ \ targetPose=[0,0,0.85,-\/0.7071068883,\ -\/6.252754758e-\/08,\ -\/8.940695295e-\/08,\ -\/0.7071067691]}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00079}00079\ \ \ \ \ movementData=\{\textcolor{stringliteral}{"{}id"{}}:\textcolor{stringliteral}{"{}movSeq2"{}},\textcolor{stringliteral}{"{}type"{}}:\textcolor{stringliteral}{"{}mov"{}},\textcolor{stringliteral}{"{}targetPose"{}}:targetPose,\textcolor{stringliteral}{"{}maxVel"{}}:maxVel,\textcolor{stringliteral}{"{}maxAccel"{}}:maxAccel\}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00080}00080\ \ \ \ \ packedMovementData=msgpack.packb(movementData)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00081}00081\ \ \ \ \ \mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_movementDataFunction'},[],[],[],packedMovementData,sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00082}00082\ \ \ \ \ movementData=\{\textcolor{stringliteral}{"{}id"{}}:\textcolor{stringliteral}{"{}movSeq3"{}},\textcolor{stringliteral}{"{}type"{}}:\textcolor{stringliteral}{"{}mov"{}},\textcolor{stringliteral}{"{}targetPose"{}}:initialPose,\textcolor{stringliteral}{"{}maxVel"{}}:maxVel,\textcolor{stringliteral}{"{}maxAccel"{}}:maxAccel\}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00083}00083\ \ \ \ \ packedMovementData=msgpack.packb(movementData)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00084}00084\ \ \ \ \ \mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_movementDataFunction'},[],[],[],packedMovementData,sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00086}00086\ \ \ \ \ \textcolor{comment}{\#\ Execute\ second\ and\ third\ movement\ sequence:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00087}00087\ \ \ \ \ \mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_executeMovement'},[],[],[],\textcolor{stringliteral}{'movSeq2'},sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00088}00088\ \ \ \ \ \mbox{\hyperlink{namespacesim_ad7ec14cb10bb224b8018a370e9d9aed0}{sim.simxCallScriptFunction}}(clientID,targetArm,sim.sim\_scripttype\_childscript,\textcolor{stringliteral}{'legacyRemoteApi\_executeMovement'},[],[],[],\textcolor{stringliteral}{'movSeq3'},sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00089}00089\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00090}00090\ \ \ \ \ \textcolor{comment}{\#\ Wait\ until\ above\ 2\ movement\ sequences\ finished\ executing:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00091}00091\ \ \ \ \ \mbox{\hyperlink{namespacesend_ik_movement_sequence-mov_a4a2e389d83e50d92ef222c1e416a560e}{waitForMovementExecuted}}(\textcolor{stringliteral}{'movSeq3'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00092}00092\ \ \ \ \ \mbox{\hyperlink{namespacesim_a13687c62101564b2bf5bfb5b30fe1e66}{sim.simxStopSimulation}}(clientID,sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00093}00093\ \ \ \ \ \mbox{\hyperlink{namespacesim_adfed967dbdd35694cf69ea72286f7d6e}{sim.simxGetStringSignal}}(clientID,stringSignalName,sim.simx\_opmode\_discontinue)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00094}00094\ \ \ \ \ \mbox{\hyperlink{namespacesim_a3b45208b35f3ebabc0e02238ca2ae9c8}{sim.simxGetPingTime}}(clientID)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00096}00096\ \ \ \ \ \textcolor{comment}{\#\ Now\ close\ the\ connection\ to\ CoppeliaSim:}}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00097}00097\ \ \ \ \ \mbox{\hyperlink{namespacesim_aa15b32d604719a02a8fdaf117ee9362a}{sim.simxFinish}}(clientID)}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00098}00098\ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Failed\ connecting\ to\ remote\ API\ server'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00100}00100\ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Program\ ended'})}
+\DoxyCodeLine{\Hypertarget{send_ik_movement_sequence-mov_8py_source_l00101}00101\ }
+
+\end{DoxyCode}

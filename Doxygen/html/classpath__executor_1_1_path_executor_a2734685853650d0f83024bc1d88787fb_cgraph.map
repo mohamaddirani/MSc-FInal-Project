@@ -1,0 +1,11 @@
+<map id="path_executor.PathExecutor.handle_obstacle" name="path_executor.PathExecutor.handle_obstacle">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,64,234,107"/>
+<area shape="rect" id="Node000002" href="$classpath__executor_1_1_path_executor.html#a629c00eb8c8d3454389ea05da73cd155" title=" " alt="" coords="560,5,769,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,61,281,49,418,35,545,28,545,33,418,41,282,55,216,66"/>
+<area shape="rect" id="Node000003" href="$classpath__executor_1_1_path_executor.html#a423857e2c62f6f9573697b6673e56ce7" title=" " alt="" coords="282,64,504,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,92,266,92,266,97,234,97"/>
+<area shape="poly" id="edge5_Node000003_Node000001" title=" " alt="" coords="281,79,249,79,249,74,281,74"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="494,61,547,49,548,54,495,66"/>
+<area shape="rect" id="Node000004" href="$classpath__executor_1_1_path_executor.html#a089f42ad0b12d4cb74d816ec6e60c8f7" title=" " alt="" coords="552,72,777,115"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="505,86,537,87,536,92,504,91"/>
+</map>

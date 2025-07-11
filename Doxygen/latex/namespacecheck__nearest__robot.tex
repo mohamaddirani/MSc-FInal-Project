@@ -1,0 +1,67 @@
+\doxysection{check\+\_\+nearest\+\_\+robot Namespace Reference}
+\hypertarget{namespacecheck__nearest__robot}{}\label{namespacecheck__nearest__robot}\index{check\_nearest\_robot@{check\_nearest\_robot}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f}{plan\+\_\+path}} (start\+\_\+pos, goal\+\_\+pos, robot\+\_\+name)
+\item 
+\mbox{\hyperlink{namespacecheck__nearest__robot_a5a57944f6d75ea2ba270abbb25fa2906}{select\+\_\+and\+\_\+execute\+\_\+nearest\+\_\+robot}} (sim, goal\+\_\+pos)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{namespacecheck__nearest__robot_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f}\index{check\_nearest\_robot@{check\_nearest\_robot}!plan\_path@{plan\_path}}
+\index{plan\_path@{plan\_path}!check\_nearest\_robot@{check\_nearest\_robot}}
+\doxysubsubsection{\texorpdfstring{plan\_path()}{plan\_path()}}
+{\footnotesize\ttfamily \label{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f} 
+check\+\_\+nearest\+\_\+robot.\+plan\+\_\+path (\begin{DoxyParamCaption}\item[{}]{start\+\_\+pos}{, }\item[{}]{goal\+\_\+pos}{, }\item[{}]{robot\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Plan an A* path from start_pos to goal_pos in meters.
+Returns a list of waypoints in meters if successful, otherwise None.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{check__nearest__robot_8py_source_l00012}{12}} of file \mbox{\hyperlink{check__nearest__robot_8py_source}{check\+\_\+nearest\+\_\+robot.\+py}}.
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespacecheck__nearest__robot_a5a57944f6d75ea2ba270abbb25fa2906}\index{check\_nearest\_robot@{check\_nearest\_robot}!select\_and\_execute\_nearest\_robot@{select\_and\_execute\_nearest\_robot}}
+\index{select\_and\_execute\_nearest\_robot@{select\_and\_execute\_nearest\_robot}!check\_nearest\_robot@{check\_nearest\_robot}}
+\doxysubsubsection{\texorpdfstring{select\_and\_execute\_nearest\_robot()}{select\_and\_execute\_nearest\_robot()}}
+{\footnotesize\ttfamily \label{namespacecheck__nearest__robot_a5a57944f6d75ea2ba270abbb25fa2906} 
+check\+\_\+nearest\+\_\+robot.\+select\+\_\+and\+\_\+execute\+\_\+nearest\+\_\+robot (\begin{DoxyParamCaption}\item[{}]{sim}{, }\item[{}]{goal\+\_\+pos}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Selects the nearest available robot to a specified goal position, plans a path, and executes the motion.
+This function initializes controllers for two robots, determines which robot is closest to the goal (unless a robot is manually assigned via `shared.robot_name`), and assigns the task to that robot. It then plans a path from the robot's current position to the goal and commands the robot to follow the path. If the path following fails due to an obstacle, the function attempts to replan and retry. The function handles stopping the robot in case of failure or upon completion.
+Args:
+    sim: The simulation environment or API instance.
+    goal_pos (tuple): The target position (x, y) for the robot to reach.
+Returns:
+    str: The result of the execution, which can be:
+        - "DONE": Path completed successfully.
+        - "FAILED": Path planning or execution failed.
+        - "replanned": Path was replanned due to an obstacle and execution loop should continue.
+Side Effects:
+    - Updates `shared.robot_start` and `shared.robot_name` with the assigned robot's start position and name.
+    - Prints status messages to the console.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{check__nearest__robot_8py_source_l00035}{35}} of file \mbox{\hyperlink{check__nearest__robot_8py_source}{check\+\_\+nearest\+\_\+robot.\+py}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacecheck__nearest__robot_a5a57944f6d75ea2ba270abbb25fa2906_cgraph}
+\end{center}
+\end{figure}

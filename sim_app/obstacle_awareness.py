@@ -28,9 +28,20 @@ def is_path_clear(direction, robot_name):
 
 def check_sensors_for_obstacle(dx, dy, robot_name):
     """
-    Checks sensors for obstacles based on robot_name.
-    Returns blocking directions: x_direction and y_direction.
+    Checks the robot's sensors for obstacles in four directions and determines blocked movement directions.
+    Args:
+        dx (float): Desired movement in the X direction.
+        dy (float): Desired movement in the Y direction.
+        robot_name (str): The name of the robot, used to construct sensor signal names.
+    Returns:
+        tuple: (x_direction, y_direction)
+            x_direction (str): Indicates if movement in the X direction is blocked ('left', 'right', or 'Free').
+            y_direction (str): Indicates if movement in the Y direction is blocked ('front', 'back', or 'Free').
+    Notes:
+        - Uses global variable `latest_data` to access sensor readings.
+        - Prints a summary of detected obstacles and blocked directions.
     """
+    
     sensor_directions = [
         ('back', f"{robot_name}_S300_sensor1"),
         ('left', f"{robot_name}_S300_sensor2"),

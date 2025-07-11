@@ -1,0 +1,95 @@
+\doxysection{synchronous\+Image\+Transmission.\+py}
+\hypertarget{synchronous_image_transmission_8py_source}{}\label{synchronous_image_transmission_8py_source}\index{RemoteApi/synchronousImageTransmission.py@{RemoteApi/synchronousImageTransmission.py}}
+\mbox{\hyperlink{synchronous_image_transmission_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00001}\mbox{\hyperlink{namespacesynchronous_image_transmission}{00001}}\ \textcolor{comment}{\#\ Make\ sure\ to\ have\ CoppeliaSim\ running,\ with\ following\ scene\ loaded:}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00002}00002\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00003}00003\ \textcolor{comment}{\#\ scenes/messaging/synchronousImageTransmissionViaRemoteApi.ttt}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00004}00004\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00005}00005\ \textcolor{comment}{\#\ Do\ not\ launch\ simulation,\ but\ run\ this\ script}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00006}00006\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00007}00007\ \textcolor{comment}{\#\ The\ client\ side\ (i.e.\ this\ script)\ depends\ on:}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00008}00008\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00009}00009\ \textcolor{comment}{\#\ sim.py,\ simConst.py,\ and\ the\ remote\ API\ library\ available}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00010}00010\ \textcolor{comment}{\#\ in\ programming/remoteApiBindings/lib/lib}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00012}00012\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00013}00013\ \ \ \ \ \textcolor{keyword}{import}\ sim}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00014}00014\ \textcolor{keywordflow}{except}:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00015}00015\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00016}00016\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'"{}sim.py"{}\ could\ not\ be\ imported.\ This\ means\ very\ probably\ that'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00017}00017\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'either\ "{}sim.py"{}\ or\ the\ remoteApi\ library\ could\ not\ be\ found.'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00018}00018\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Make\ sure\ both\ are\ in\ the\ same\ folder\ as\ this\ file,'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00019}00019\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'or\ appropriately\ adjust\ the\ file\ "{}sim.py"{}'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00020}00020\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00021}00021\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00023}00023\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00024}00024\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00026}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client}{00026}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client}{Client}}:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00027}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_afab8c4d0cbe4b45ce9ae5d769078a4c9}{00027}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_afab8c4d0cbe4b45ce9ae5d769078a4c9}{\_\_enter\_\_}}(self):}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00028}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_ae3ede1bc7c88772f04e9c480125828e3}{00028}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_ae3ede1bc7c88772f04e9c480125828e3}{intSignalName}}=\textcolor{stringliteral}{'legacyRemoteApiStepCounter'}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00029}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_aa77d3d98fd241788035faf16eec4ce6c}{00029}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_aa77d3d98fd241788035faf16eec4ce6c}{stepCounter}}=0}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00030}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_a940408ffe151893c95ca608c62da8ab9}{00030}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_a940408ffe151893c95ca608c62da8ab9}{lastImageAcquisitionTime}}=-\/1}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_aa15b32d604719a02a8fdaf117ee9362a}{sim.simxFinish}}(-\/1)\ \textcolor{comment}{\#\ just\ in\ case,\ close\ all\ opened\ connections}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00032}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_a9e8deb46348d011d877b5239d4307f34}{00032}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_a9e8deb46348d011d877b5239d4307f34}{id}}=\mbox{\hyperlink{namespacesim_aa0278273e11a7dd23bb6924cbd8a128c}{sim.simxStart}}(\textcolor{stringliteral}{'127.0.0.1'},19997,\textcolor{keyword}{True},\textcolor{keyword}{True},5000,5)\ \textcolor{comment}{\#\ Connect\ to\ CoppeliaSim}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00034}00034\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00035}\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_ae1dbbed6761d2bf33b70455ed46e9330}{00035}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{classsynchronous_image_transmission_1_1_client_ae1dbbed6761d2bf33b70455ed46e9330}{\_\_exit\_\_}}(self,*err):}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_aa15b32d604719a02a8fdaf117ee9362a}{sim.simxFinish}}(-\/1)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00038}00038\ \textcolor{keyword}{with}\ \mbox{\hyperlink{classsynchronous_image_transmission_1_1_client}{Client}}()\ \textcolor{keyword}{as}\ client:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00039}\mbox{\hyperlink{namespacesynchronous_image_transmission_a4ded62944c1f04edbe7b86832d8258eb}{00039}}\ \ \ \ \ client.runInSynchronousMode=\textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00040}00040\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00041}00041\ \ \ \ \ print(\textcolor{stringliteral}{"{}running"{}})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00043}00043\ \ \ \ \ \textcolor{keywordflow}{if}\ client.id!=-\/1:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Connected\ to\ remote\ API\ server'})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00046}\mbox{\hyperlink{namespacesynchronous_image_transmission_a8c349c01fbe52c939f63743015a34429}{00046}}\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{namespacesynchronous_image_transmission_a8c349c01fbe52c939f63743015a34429}{stepSimulation}}():}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ client.runInSynchronousMode:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currentStep=client.stepCounter}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_ac545906994ad1c383db601fc11fe12d4}{sim.simxSynchronousTrigger}}(client.id);}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ client.stepCounter==currentStep:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ retCode,s=\mbox{\hyperlink{namespacesim_a9f1ec2c9698d5a465b9150198ddabdbc}{sim.simxGetIntegerSignal}}(client.id,client.intSignalName,sim.simx\_opmode\_buffer)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ retCode==sim.simx\_return\_ok:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ client.stepCounter=s}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ retCode,res,img=\mbox{\hyperlink{namespacesim_a3a9ee7b21f11ac9458b003b99504de96}{sim.simxGetVisionSensorImage}}(client.id,client.visionSensorHandle,0,sim.simx\_opmode\_buffer)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ client.lastImageAcquisitionTime=\mbox{\hyperlink{namespacesim_a11d335973621c49f24735b9e536318b1}{sim.simxGetLastCmdTime}}(client.id)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ retCode==sim.simx\_return\_ok:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_acac959636fe7f787f7ed5674ce359ce0}{sim.simxSetVisionSensorImage}}(client.id,client.passiveVisionSensorHandle,img,0,sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ retCode,res,img=\mbox{\hyperlink{namespacesim_a3a9ee7b21f11ac9458b003b99504de96}{sim.simxGetVisionSensorImage}}(client.id,client.visionSensorHandle,0,sim.simx\_opmode\_buffer)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ retCode==sim.simx\_return\_ok:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageSimTime=\mbox{\hyperlink{namespacesim_a11d335973621c49f24735b9e536318b1}{sim.simxGetLastCmdTime}}(client.id)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ client.lastImageAcquisitionTime!=imageSimTime:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ client.lastImageAcquisitionTime=imageSimTime}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_acac959636fe7f787f7ed5674ce359ce0}{sim.simxSetVisionSensorImage}}(client.id,client.passiveVisionSensorHandle,img,0,sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Start\ streaming\ client.intSignalName\ integer\ signal,\ that\ signals\ when\ a\ step\ is\ finished:}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_a9f1ec2c9698d5a465b9150198ddabdbc}{sim.simxGetIntegerSignal}}(client.id,client.intSignalName,sim.simx\_opmode\_streaming)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00069}\mbox{\hyperlink{namespacesynchronous_image_transmission_abd979a8ce283aa06494ac7f84c036ea7}{00069}}\ \ \ \ \ \ \ \ \ res,client.visionSensorHandle=\mbox{\hyperlink{namespacesim_ae57afd16049849b87e8772d593dd1123}{sim.simxGetObjectHandle}}(client.id,\textcolor{stringliteral}{'/VisionSensor'},sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00070}\mbox{\hyperlink{namespacesynchronous_image_transmission_aaca50d8a24101baa4656d8ebca5db78d}{00070}}\ \ \ \ \ \ \ \ \ res,client.passiveVisionSensorHandle=\mbox{\hyperlink{namespacesim_ae57afd16049849b87e8772d593dd1123}{sim.simxGetObjectHandle}}(client.id,\textcolor{stringliteral}{'/PassiveVisionSensor'},sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Start\ streaming\ the\ vision\ sensor\ image:}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_a3a9ee7b21f11ac9458b003b99504de96}{sim.simxGetVisionSensorImage}}(client.id,client.visionSensorHandle,0,sim.simx\_opmode\_streaming)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ enable\ the\ synchronous\ mode\ on\ the\ client:}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ client.runInSynchronousMode:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_ac47d7dedacfd56747411ec0ae9e145f2}{sim.simxSynchronous}}(client.id,\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_a89c634a979e4418b3e2f457a98f92542}{sim.simxStartSimulation}}(client.id,sim.simx\_opmode\_oneshot)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00081}\mbox{\hyperlink{namespacesynchronous_image_transmission_a66f08b42ad4d127f738d9b4000bf4ea9}{00081}}\ \ \ \ \ \ \ \ \ startTime=time.time()}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ time.time()-\/startTime\ <\ 5:}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesynchronous_image_transmission_a8c349c01fbe52c939f63743015a34429}{stepSimulation}}()}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ stop\ data\ streaming}}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_a9f1ec2c9698d5a465b9150198ddabdbc}{sim.simxGetIntegerSignal}}(client.id,client.intSignalName,sim.simx\_opmode\_discontinue)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_a3a9ee7b21f11ac9458b003b99504de96}{sim.simxGetVisionSensorImage}}(client.id,client.visionSensorHandle,0,sim.simx\_opmode\_discontinue)}
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{synchronous_image_transmission_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_a13687c62101564b2bf5bfb5b30fe1e66}{sim.simxStopSimulation}}(client.id,sim.simx\_opmode\_blocking)}
+
+\end{DoxyCode}

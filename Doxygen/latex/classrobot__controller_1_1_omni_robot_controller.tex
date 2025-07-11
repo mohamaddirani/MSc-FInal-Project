@@ -1,0 +1,140 @@
+\doxysection{robot\+\_\+controller.\+Omni\+Robot\+Controller Class Reference}
+\hypertarget{classrobot__controller_1_1_omni_robot_controller}{}\label{classrobot__controller_1_1_omni_robot_controller}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a0e9ca0740856359d425f5507d5b46a59}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a525117c79a991c333b4bae4c09c64975}{init\+\_\+handles}} (self, \mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf}{sim}}, robot\+\_\+name)
+\item 
+\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a00c90013c9cf49523cc4c39afc1a21f8}{get\+\_\+position}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a67f278fbe3e74c6bce53c237e074e593}{initialized}} = False
+\item 
+\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf}{sim}} = sim
+\item 
+dict \mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a8a6543485dd086aaa6fb28784d887834}{wheels}}
+\item 
+\mbox{\hyperlink{classrobot__controller_1_1_omni_robot_controller_a4455483709fc8e02e7f9b544d2ff70cd}{robot}} = await sim.\+get\+Object(f\textquotesingle{}/\{robot\+\_\+name\}\textquotesingle{})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Controller class for an omnidirectional robot in a simulation environment.
+Methods
+-------
+__init__():
+    Initializes the controller state.
+async init_handles(sim, robot_name):
+    Asynchronously initializes simulation object handles for the robot and its wheels.
+    Sets the joint force for each wheel motor and marks the controller as initialized.
+async get_position():
+    Asynchronously retrieves the current (x, y) position of the robot in the simulation.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00003}{3}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+
+
+\label{doc-constructors}
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_a0e9ca0740856359d425f5507d5b46a59}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_a0e9ca0740856359d425f5507d5b46a59} 
+robot\+\_\+controller.\+Omni\+Robot\+Controller.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00016}{16}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+
+
+\label{doc-func-members}
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_a00c90013c9cf49523cc4c39afc1a21f8}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!get\_position@{get\_position}}
+\index{get\_position@{get\_position}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{get\_position()}{get\_position()}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_a00c90013c9cf49523cc4c39afc1a21f8} 
+robot\+\_\+controller.\+Omni\+Robot\+Controller.\+get\+\_\+position (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00033}{33}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_a525117c79a991c333b4bae4c09c64975}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!init\_handles@{init\_handles}}
+\index{init\_handles@{init\_handles}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{init\_handles()}{init\_handles()}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_a525117c79a991c333b4bae4c09c64975} 
+robot\+\_\+controller.\+Omni\+Robot\+Controller.\+init\+\_\+handles (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{sim}{, }\item[{}]{robot\+\_\+name}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00019}{19}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+
+
+\label{doc-variable-members}
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_a67f278fbe3e74c6bce53c237e074e593}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!initialized@{initialized}}
+\index{initialized@{initialized}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{initialized}{initialized}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_a67f278fbe3e74c6bce53c237e074e593} 
+bool robot\+\_\+controller.\+Omni\+Robot\+Controller.\+initialized = False}
+
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00017}{17}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_a4455483709fc8e02e7f9b544d2ff70cd}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!robot@{robot}}
+\index{robot@{robot}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{robot}{robot}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_a4455483709fc8e02e7f9b544d2ff70cd} 
+robot\+\_\+controller.\+Omni\+Robot\+Controller.\+robot = await sim.\+get\+Object(f\textquotesingle{}/\{robot\+\_\+name\}\textquotesingle{})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00027}{27}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!sim@{sim}}
+\index{sim@{sim}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{sim}{sim}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_aee9ac95b26db30a9e8e02f9152ef95cf} 
+robot\+\_\+controller.\+Omni\+Robot\+Controller.\+sim = sim}
+
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00020}{20}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+\Hypertarget{classrobot__controller_1_1_omni_robot_controller_a8a6543485dd086aaa6fb28784d887834}\index{robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}!wheels@{wheels}}
+\index{wheels@{wheels}!robot\_controller.OmniRobotController@{robot\_controller.OmniRobotController}}
+\doxysubsubsection{\texorpdfstring{wheels}{wheels}}
+{\footnotesize\ttfamily \label{classrobot__controller_1_1_omni_robot_controller_a8a6543485dd086aaa6fb28784d887834} 
+dict robot\+\_\+controller.\+Omni\+Robot\+Controller.\+wheels}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fl"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/FLwheel\_motor'}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}fr"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/FRwheel\_motor'}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rl"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/RLwheel\_motor'}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}rr"{}}:\ await\ sim.getObject(f\textcolor{stringliteral}{'/\{robot\_name\}/RRwheel\_motor'}),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{robot__controller_8py_source_l00021}{21}} of file \mbox{\hyperlink{robot__controller_8py_source}{robot\+\_\+controller.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sim\+\_\+app/\mbox{\hyperlink{robot__controller_8py}{robot\+\_\+controller.\+py}}\end{DoxyCompactItemize}

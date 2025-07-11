@@ -1,0 +1,13 @@
+<map id="visualization.create_point_cloud" name="visualization.create_point_cloud">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,101,139,144"/>
+<area shape="rect" id="Node000002" href="$namespacevisualization.html#aec593c24ef9d98e213c1324d430044cf" title=" " alt="" coords="188,5,342,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,99,185,58,196,53,198,57,188,62,112,103"/>
+<area shape="rect" id="Node000003" href="$namespacevisualization.html#a2050cc670ace90686898f860f86ac77b" title=" " alt="" coords="187,72,343,115"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,110,171,105,172,110,140,115"/>
+<area shape="rect" id="Node000004" href="$namespacesim.html#ad7ec14cb10bb224b8018a370e9d9aed0" title=" " alt="" coords="391,139,572,165"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="139,125,376,142,375,147,139,130"/>
+<area shape="rect" id="Node000005" href="$namespacevisualization.html#a1d0cbab924e6fa872cdcbe7730f6a151" title=" " alt="" coords="192,189,338,216"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="126,142,188,168,217,180,215,185,186,173,124,147"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="344,112,416,132,415,137,343,117"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="325,186,406,167,407,172,326,191"/>
+</map>

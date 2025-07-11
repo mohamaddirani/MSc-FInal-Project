@@ -1,0 +1,39 @@
+\doxysection{Remote\+Api/send\+Movement\+Sequence-\/mov.py File Reference}
+\hypertarget{send_movement_sequence-mov_8py}{}\label{send_movement_sequence-mov_8py}\index{RemoteApi/sendMovementSequence-\/mov.py@{RemoteApi/sendMovementSequence-\/mov.py}}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacesend_movement_sequence-mov}{send\+Movement\+Sequence-\/mov}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacesend_movement_sequence-mov_a1c07c63fe0762d24e80cc8b1ccc97869}{send\+Movement\+Sequence-\/mov.\+wait\+For\+Movement\+Executed}} (id)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacesend_movement_sequence-mov_a89ef2b45e225dbe1bd19872d2978e221}{send\+Movement\+Sequence-\/mov.\+client\+ID}} = \mbox{\hyperlink{namespacesim_aa0278273e11a7dd23bb6924cbd8a128c}{sim.\+simx\+Start}}(\textquotesingle{}127.\+0.\+0.\+1\textquotesingle{},19997,True,True,5000,5)
+\item 
+str \mbox{\hyperlink{namespacesend_movement_sequence-mov_a6fecf860c833e218215e2e9589023c88}{send\+Movement\+Sequence-\/mov.\+executed\+Mov\+Id}} = \textquotesingle{}not\+Ready\textquotesingle{}
+\item 
+str \mbox{\hyperlink{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6}{send\+Movement\+Sequence-\/mov.\+target\+Arm}} = \textquotesingle{}/blue\+Arm\textquotesingle{}
+\item 
+str \mbox{\hyperlink{namespacesend_movement_sequence-mov_a7ae553ec205cd8b125223be92279427f}{send\+Movement\+Sequence-\/mov.\+string\+Signal\+Name}} = \mbox{\hyperlink{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6}{target\+Arm}}+\textquotesingle{}\+\_\+executed\+Mov\+Id\textquotesingle{}
+\item 
+int \mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{send\+Movement\+Sequence-\/mov.\+m\+Vel}} = 100\texorpdfstring{$\ast$}{*}math.\+pi/180
+\item 
+int \mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{send\+Movement\+Sequence-\/mov.\+m\+Accel}} = 150\texorpdfstring{$\ast$}{*}math.\+pi/180
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_ae6cac3fb762a9fd2c2e92c07f9733826}{send\+Movement\+Sequence-\/mov.\+max\+Vel}} = \mbox{[}\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}}\mbox{]}
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_a825a62b7448ae1034e9685d1c3b1e15f}{send\+Movement\+Sequence-\/mov.\+max\+Accel}} = \mbox{[}\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}}\mbox{]}
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_a2b17cc2b54f6539deb3642bcc450a25c}{send\+Movement\+Sequence-\/mov.\+target\+Vel}} = \mbox{[}0,0,0,0,0,0\mbox{]}
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_add1a628438e37db26d6c4edf1379b1ea}{send\+Movement\+Sequence-\/mov.\+target\+Config}} = \mbox{[}90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,-\/90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180\mbox{]}
+\item 
+dict \mbox{\hyperlink{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf}{send\+Movement\+Sequence-\/mov.\+movement\+Data}} = \{"{}id"{}\+:"{}mov\+Seq1"{},"{}type"{}\+:"{}mov"{},"{}target\+Config"{}\+:target\+Config,"{}target\+Vel"{}\+:target\+Vel,"{}max\+Vel"{}\+:max\+Vel,"{}max\+Accel"{}\+:max\+Accel\}
+\item 
+\mbox{\hyperlink{namespacesend_movement_sequence-mov_a94765c851a92a785eef325782fe01a10}{send\+Movement\+Sequence-\/mov.\+packed\+Movement\+Data}} = msgpack.\+packb(\mbox{\hyperlink{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf}{movement\+Data}})
+\end{DoxyCompactItemize}
