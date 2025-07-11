@@ -16,6 +16,7 @@ async def plan_path(start_pos, goal_pos, robot_name):
     """
     start_grid = meters_to_grid(start_pos[0], start_pos[1])
     goal_grid = meters_to_grid(goal_pos[0], goal_pos[1])
+    
 
     print(f"📌 Planning path: Start Grid {start_grid}, Goal Grid {goal_grid}")
     grid = build_occupancy_grid(robot_name, grid_size=200, cell_resolution=0.2)  # fresh occupancy grid
@@ -32,6 +33,21 @@ async def plan_path(start_pos, goal_pos, robot_name):
     return path_in_meters
 
 async def select_and_execute_nearest_robot(sim, goal_pos):
+    """
+    Selects the nearest available robot to a specified goal position, plans a path, and executes the motion.
+    This function initializes controllers for two robots, determines which robot is closest to the goal (unless a robot is manually assigned via `shared.robot_name`), and assigns the task to that robot. It then plans a path from the robot's current position to the goal and commands the robot to follow the path. If the path following fails due to an obstacle, the function attempts to replan and retry. The function handles stopping the robot in case of failure or upon completion.
+    Args:
+        sim: The simulation environment or API instance.
+        goal_pos (tuple): The target position (x, y) for the robot to reach.
+    Returns:
+        str: The result of the execution, which can be:
+            - "DONE": Path completed successfully.
+            - "FAILED": Path planning or execution failed.
+            - "replanned": Path was replanned due to an obstacle and execution loop should continue.
+    Side Effects:
+        - Updates `shared.robot_start` and `shared.robot_name` with the assigned robot's start position and name.
+        - Prints status messages to the console.
+    """
 
     
     controller0 = OmniRobotController()
@@ -43,25 +59,38 @@ async def select_and_execute_nearest_robot(sim, goal_pos):
     goal_pos = shared.robot_goal
     print(f"📌 Shared goal: {goal_pos}")
 
-    pos0 = await controller0.get_position()
-    pos1 = await controller1.get_position()
+    # If robot name is already set, skip selection and use it directly
+    if shared.robot_name in ["Rob0", "Rob1"]:
+        if shared.robot_name == "Rob0":
+            assigned_controller = controller0
+            start_pos = await controller0.get_position()
+        else:
+            assigned_controller = controller1
+            start_pos = await controller1.get_position()
+        robot_name = shared.robot_name
+        print(f"🤖 Using manually assigned robot: {robot_name}")
+    else:
+        pos0 = await controller0.get_position()
+        pos1 = await controller1.get_position()
 
-    dist0 = math.hypot(goal_pos[0] - pos0[0], goal_pos[1] - pos0[1])
-    dist1 = math.hypot(goal_pos[0] - pos1[0], goal_pos[1] - pos1[1])
-    print(f"Distance for Robot0 is {dist0}, Distance For RObot 1 is {dist1}")
-    if dist0 <= dist1:
-        assigned_controller = controller0
-        start_pos = pos0
-        print("🤖 Robot0 assigned to goal")
-    else:
-        assigned_controller = controller1
-        start_pos = pos1
-        print("🤖 Robot1 assigned to goal")
-    if math.isclose(start_pos[0], pos0[0], abs_tol=1e-4) and math.isclose(start_pos[1], pos0[1], abs_tol=1e-4):
-        robot_name = "Rob0"
-    else:
-        robot_name = "Rob1"
+        dist0 = math.hypot(goal_pos[0] - pos0[0], goal_pos[1] - pos0[1])
+        dist1 = math.hypot(goal_pos[0] - pos1[0], goal_pos[1] - pos1[1])
+        print(f"Distance for Robot0 is {dist0}, Distance For RObot 1 is {dist1}")
+        if dist0 <= dist1:
+            assigned_controller = controller0
+            start_pos = pos0
+            print("🤖 Robot0 assigned to goal")
+        else:
+            assigned_controller = controller1
+            start_pos = pos1
+            print("🤖 Robot1 assigned to goal")
+        if math.isclose(start_pos[0], pos0[0], abs_tol=1e-4) and math.isclose(start_pos[1], pos0[1], abs_tol=1e-4):
+            robot_name = "Rob0"
+        else:
+            robot_name = "Rob1"
         
+    shared.robot_start = start_pos
+    shared.robot_name = robot_name  
     path_in_meters = await plan_path(start_pos, goal_pos, robot_name)
     motion = OmniRobotMotion.RobotMotion(sim, assigned_controller.wheels)
     if not path_in_meters:

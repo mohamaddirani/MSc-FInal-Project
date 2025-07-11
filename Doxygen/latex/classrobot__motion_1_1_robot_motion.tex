@@ -1,0 +1,109 @@
+\doxysection{robot\+\_\+motion.\+Robot\+Motion Class Reference}
+\hypertarget{classrobot__motion_1_1_robot_motion}{}\label{classrobot__motion_1_1_robot_motion}\index{robot\_motion.RobotMotion@{robot\_motion.RobotMotion}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classrobot__motion_1_1_robot_motion_abf9be96e2254c9af97aa866dd3c3404a}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, \mbox{\hyperlink{classrobot__motion_1_1_robot_motion_aa5f4187abd8caa83222d1b2580ec4c30}{sim}}, \mbox{\hyperlink{classrobot__motion_1_1_robot_motion_a5551ead7e081ddff3c6bedb7415ffe6b}{wheels}})
+\item 
+\mbox{\hyperlink{classrobot__motion_1_1_robot_motion_a68d1723ff9a877b4e65c06dca286c256}{stop}} (self)
+\item 
+\mbox{\hyperlink{classrobot__motion_1_1_robot_motion_afc82ab1db06aa241c6a08b265758095b}{set\+\_\+velocity}} (self, vx, vy)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classrobot__motion_1_1_robot_motion_aa5f4187abd8caa83222d1b2580ec4c30}{sim}} = sim
+\item 
+\mbox{\hyperlink{classrobot__motion_1_1_robot_motion_a5551ead7e081ddff3c6bedb7415ffe6b}{wheels}} = wheels
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}RobotMotion class provides methods to control the motion of a robot with four wheels in a simulation environment.
+Attributes:
+    sim: The simulation interface object used to control the robot's joints.
+    wheels: A dictionary mapping wheel names ("fl", "fr", "rl", "rr") to their respective joint handles.
+Methods:
+    stop():
+        Asynchronously stops all wheels of the robot by setting their target velocities to zero.
+    set_velocity(vx, vy):
+        Asynchronously sets the velocity of each wheel to achieve the desired linear velocities along the x (vx) and y (vy) axes.
+        The velocities are calculated based on a mecanum wheel configuration.
+        Args:
+            vx (float): Desired velocity along the x-axis.
+            vy (float): Desired velocity along the y-axis.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{robot__motion_8py_source_l00006}{6}} of file \mbox{\hyperlink{robot__motion_8py_source}{robot\+\_\+motion.\+py}}.
+
+
+
+\label{doc-constructors}
+\Hypertarget{classrobot__motion_1_1_robot_motion_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classrobot__motion_1_1_robot_motion_abf9be96e2254c9af97aa866dd3c3404a}\index{robot\_motion.RobotMotion@{robot\_motion.RobotMotion}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!robot\_motion.RobotMotion@{robot\_motion.RobotMotion}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classrobot__motion_1_1_robot_motion_abf9be96e2254c9af97aa866dd3c3404a} 
+robot\+\_\+motion.\+Robot\+Motion.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{sim}{, }\item[{}]{wheels}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__motion_8py_source_l00022}{22}} of file \mbox{\hyperlink{robot__motion_8py_source}{robot\+\_\+motion.\+py}}.
+
+
+
+\label{doc-func-members}
+\Hypertarget{classrobot__motion_1_1_robot_motion_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classrobot__motion_1_1_robot_motion_afc82ab1db06aa241c6a08b265758095b}\index{robot\_motion.RobotMotion@{robot\_motion.RobotMotion}!set\_velocity@{set\_velocity}}
+\index{set\_velocity@{set\_velocity}!robot\_motion.RobotMotion@{robot\_motion.RobotMotion}}
+\doxysubsubsection{\texorpdfstring{set\_velocity()}{set\_velocity()}}
+{\footnotesize\ttfamily \label{classrobot__motion_1_1_robot_motion_afc82ab1db06aa241c6a08b265758095b} 
+robot\+\_\+motion.\+Robot\+Motion.\+set\+\_\+velocity (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{vx}{, }\item[{}]{vy}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__motion_8py_source_l00031}{31}} of file \mbox{\hyperlink{robot__motion_8py_source}{robot\+\_\+motion.\+py}}.
+
+\Hypertarget{classrobot__motion_1_1_robot_motion_a68d1723ff9a877b4e65c06dca286c256}\index{robot\_motion.RobotMotion@{robot\_motion.RobotMotion}!stop@{stop}}
+\index{stop@{stop}!robot\_motion.RobotMotion@{robot\_motion.RobotMotion}}
+\doxysubsubsection{\texorpdfstring{stop()}{stop()}}
+{\footnotesize\ttfamily \label{classrobot__motion_1_1_robot_motion_a68d1723ff9a877b4e65c06dca286c256} 
+robot\+\_\+motion.\+Robot\+Motion.\+stop (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{robot__motion_8py_source_l00026}{26}} of file \mbox{\hyperlink{robot__motion_8py_source}{robot\+\_\+motion.\+py}}.
+
+
+
+\label{doc-variable-members}
+\Hypertarget{classrobot__motion_1_1_robot_motion_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classrobot__motion_1_1_robot_motion_aa5f4187abd8caa83222d1b2580ec4c30}\index{robot\_motion.RobotMotion@{robot\_motion.RobotMotion}!sim@{sim}}
+\index{sim@{sim}!robot\_motion.RobotMotion@{robot\_motion.RobotMotion}}
+\doxysubsubsection{\texorpdfstring{sim}{sim}}
+{\footnotesize\ttfamily \label{classrobot__motion_1_1_robot_motion_aa5f4187abd8caa83222d1b2580ec4c30} 
+robot\+\_\+motion.\+Robot\+Motion.\+sim = sim}
+
+
+
+Definition at line \mbox{\hyperlink{robot__motion_8py_source_l00023}{23}} of file \mbox{\hyperlink{robot__motion_8py_source}{robot\+\_\+motion.\+py}}.
+
+\Hypertarget{classrobot__motion_1_1_robot_motion_a5551ead7e081ddff3c6bedb7415ffe6b}\index{robot\_motion.RobotMotion@{robot\_motion.RobotMotion}!wheels@{wheels}}
+\index{wheels@{wheels}!robot\_motion.RobotMotion@{robot\_motion.RobotMotion}}
+\doxysubsubsection{\texorpdfstring{wheels}{wheels}}
+{\footnotesize\ttfamily \label{classrobot__motion_1_1_robot_motion_a5551ead7e081ddff3c6bedb7415ffe6b} 
+robot\+\_\+motion.\+Robot\+Motion.\+wheels = wheels}
+
+
+
+Definition at line \mbox{\hyperlink{robot__motion_8py_source_l00024}{24}} of file \mbox{\hyperlink{robot__motion_8py_source}{robot\+\_\+motion.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sim\+\_\+app/\mbox{\hyperlink{robot__motion_8py}{robot\+\_\+motion.\+py}}\end{DoxyCompactItemize}

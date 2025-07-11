@@ -1,0 +1,51 @@
+\doxysection{obstacle\+\_\+awareness Namespace Reference}
+\hypertarget{namespaceobstacle__awareness}{}\label{namespaceobstacle__awareness}\index{obstacle\_awareness@{obstacle\_awareness}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceobstacle__awareness_afa51b80ea6d9fd66e3e9efa563d3e64e}{is\+\_\+path\+\_\+clear}} (direction, robot\+\_\+name)
+\item 
+\mbox{\hyperlink{namespaceobstacle__awareness_ac63040e12567c93e6d61e6b388a3633d}{check\+\_\+sensors\+\_\+for\+\_\+obstacle}} (dx, dy, robot\+\_\+name)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{namespaceobstacle__awareness_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceobstacle__awareness_ac63040e12567c93e6d61e6b388a3633d}\index{obstacle\_awareness@{obstacle\_awareness}!check\_sensors\_for\_obstacle@{check\_sensors\_for\_obstacle}}
+\index{check\_sensors\_for\_obstacle@{check\_sensors\_for\_obstacle}!obstacle\_awareness@{obstacle\_awareness}}
+\doxysubsubsection{\texorpdfstring{check\_sensors\_for\_obstacle()}{check\_sensors\_for\_obstacle()}}
+{\footnotesize\ttfamily \label{namespaceobstacle__awareness_ac63040e12567c93e6d61e6b388a3633d} 
+obstacle\+\_\+awareness.\+check\+\_\+sensors\+\_\+for\+\_\+obstacle (\begin{DoxyParamCaption}\item[{}]{dx}{, }\item[{}]{dy}{, }\item[{}]{robot\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Checks the robot's sensors for obstacles in four directions and determines blocked movement directions.
+Args:
+    dx (float): Desired movement in the X direction.
+    dy (float): Desired movement in the Y direction.
+    robot_name (str): The name of the robot, used to construct sensor signal names.
+Returns:
+    tuple: (x_direction, y_direction)
+        x_direction (str): Indicates if movement in the X direction is blocked ('left', 'right', or 'Free').
+        y_direction (str): Indicates if movement in the Y direction is blocked ('front', 'back', or 'Free').
+Notes:
+    - Uses global variable `latest_data` to access sensor readings.
+    - Prints a summary of detected obstacles and blocked directions.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{obstacle__awareness_8py_source_l00029}{29}} of file \mbox{\hyperlink{obstacle__awareness_8py_source}{obstacle\+\_\+awareness.\+py}}.
+
+\Hypertarget{namespaceobstacle__awareness_afa51b80ea6d9fd66e3e9efa563d3e64e}\index{obstacle\_awareness@{obstacle\_awareness}!is\_path\_clear@{is\_path\_clear}}
+\index{is\_path\_clear@{is\_path\_clear}!obstacle\_awareness@{obstacle\_awareness}}
+\doxysubsubsection{\texorpdfstring{is\_path\_clear()}{is\_path\_clear()}}
+{\footnotesize\ttfamily \label{namespaceobstacle__awareness_afa51b80ea6d9fd66e3e9efa563d3e64e} 
+obstacle\+\_\+awareness.\+is\+\_\+path\+\_\+clear (\begin{DoxyParamCaption}\item[{}]{direction}{, }\item[{}]{robot\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}direction: 'front', 'back', 'left', or 'right'
+robot_name: 'Rob0' or 'Rob1'
+Returns True if no obstacle is detected within the threshold in that direction.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{obstacle__awareness_8py_source_l00005}{5}} of file \mbox{\hyperlink{obstacle__awareness_8py_source}{obstacle\+\_\+awareness.\+py}}.
+

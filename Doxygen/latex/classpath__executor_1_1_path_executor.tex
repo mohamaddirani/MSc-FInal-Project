@@ -1,0 +1,248 @@
+\doxysection{path\+\_\+executor.\+Path\+Executor Class Reference}
+\hypertarget{classpath__executor_1_1_path_executor}{}\label{classpath__executor_1_1_path_executor}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_ace2b907cf75b06c7cb729edb222a68e5}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, \mbox{\hyperlink{classpath__executor_1_1_path_executor_a4e697ef5a62525e2dc3522085487958e}{sim}}, \mbox{\hyperlink{classpath__executor_1_1_path_executor_ab748dc22c779dff61778fac5b9a1ef8f}{robot}}, wheels)
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a629c00eb8c8d3454389ea05da73cd155}{get\+\_\+position}} (self)
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a135c9ff26c8cdd09fd9c15d3b30fe8b1}{follow\+\_\+path}} (self, path)
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a423857e2c62f6f9573697b6673e56ce7}{move\+\_\+to\+\_\+goal}} (self, goal)
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a089f42ad0b12d4cb74d816ec6e60c8f7}{check\+\_\+alignment}} (self, direction, coordinates\+\_\+for\+\_\+goal)
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a2734685853650d0f83024bc1d88787fb}{handle\+\_\+obstacle}} (self, Robot, direction, goal, dx, dy)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a4e697ef5a62525e2dc3522085487958e}{sim}} = sim
+\item 
+\mbox{\hyperlink{classpath__executor_1_1_path_executor_a994b68eda74b3442580779071216d434}{motion}} = Robot\+Motion(\mbox{\hyperlink{classpath__executor_1_1_path_executor_a4e697ef5a62525e2dc3522085487958e}{sim}}, wheels)
+\item 
+int \mbox{\hyperlink{classpath__executor_1_1_path_executor_ab748dc22c779dff61778fac5b9a1ef8f}{robot}} = robot
+\item 
+str \mbox{\hyperlink{classpath__executor_1_1_path_executor_ab9c9f01a1ebbac6bff0edc755d79fc08}{cleared}} = "{}False"{}
+\item 
+str \mbox{\hyperlink{classpath__executor_1_1_path_executor_a827e585f2d680eb9996da5551f6a02ad}{Failed}} = "{}False"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Executes a planned path for a robot in a simulation environment, handling movement, obstacle avoidance, and goal alignment.
+Attributes:
+    sim: The simulation environment object.
+    motion: An instance of RobotMotion for controlling robot movement.
+    robot: The robot object or identifier.
+    cleared (str): Flag indicating if an obstacle has been cleared ("True"/"False").
+    Failed (str): Flag indicating if path execution has failed ("True"/"False").
+Methods:
+    __init__(sim, robot, wheels):
+        Initializes the PathExecutor with the simulation, robot, and wheels.
+    async get_position():
+        Retrieves the current (x, y) position of the robot.
+    async follow_path(path):
+        Follows a given path (list of waypoints), moving the robot to each goal while handling obstacles and alignment.
+        Returns "DONE" if the path is completed, "FAILED" if execution fails, or "replanned" if replanning is triggered.
+    async move_to_goal(goal):
+        Moves the robot towards a specified goal, checking for obstacles and alignment.
+        Returns "MOVING" if still in progress, "DONE" if the goal is reached, "FAILED" if blocked, or "replanned" if replanning is needed.
+    async check_alignment(direction, coordinates_for_goal):
+        Checks if the robot is aligned with the goal along the X or Y axis based on obstacle direction and goal coordinates.
+        Returns "X-AXIS ALIGNED", "Y-AXIS ALIGNED", or None.
+    async handle_obstacle(Robot, direction, goal, dx, dy):
+        Handles obstacle avoidance by moving towards a temporary goal to bypass the obstacle.
+        Updates the 'cleared' and 'Failed' flags based on the outcome.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00015}{15}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+
+
+\label{doc-constructors}
+\Hypertarget{classpath__executor_1_1_path_executor_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classpath__executor_1_1_path_executor_ace2b907cf75b06c7cb729edb222a68e5}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_ace2b907cf75b06c7cb729edb222a68e5} 
+path\+\_\+executor.\+Path\+Executor.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{sim}{, }\item[{}]{robot}{, }\item[{}]{wheels}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00043}{43}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+
+
+\label{doc-func-members}
+\Hypertarget{classpath__executor_1_1_path_executor_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classpath__executor_1_1_path_executor_a089f42ad0b12d4cb74d816ec6e60c8f7}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!check\_alignment@{check\_alignment}}
+\index{check\_alignment@{check\_alignment}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{check\_alignment()}{check\_alignment()}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a089f42ad0b12d4cb74d816ec6e60c8f7} 
+path\+\_\+executor.\+Path\+Executor.\+check\+\_\+alignment (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{direction}{, }\item[{}]{coordinates\+\_\+for\+\_\+goal}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00219}{219}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a089f42ad0b12d4cb74d816ec6e60c8f7_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classpath__executor_1_1_path_executor_a135c9ff26c8cdd09fd9c15d3b30fe8b1}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!follow\_path@{follow\_path}}
+\index{follow\_path@{follow\_path}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{follow\_path()}{follow\_path()}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a135c9ff26c8cdd09fd9c15d3b30fe8b1} 
+path\+\_\+executor.\+Path\+Executor.\+follow\+\_\+path (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{path}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00053}{53}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a135c9ff26c8cdd09fd9c15d3b30fe8b1_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classpath__executor_1_1_path_executor_a629c00eb8c8d3454389ea05da73cd155}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!get\_position@{get\_position}}
+\index{get\_position@{get\_position}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{get\_position()}{get\_position()}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a629c00eb8c8d3454389ea05da73cd155} 
+path\+\_\+executor.\+Path\+Executor.\+get\+\_\+position (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00049}{49}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a629c00eb8c8d3454389ea05da73cd155_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classpath__executor_1_1_path_executor_a2734685853650d0f83024bc1d88787fb}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!handle\_obstacle@{handle\_obstacle}}
+\index{handle\_obstacle@{handle\_obstacle}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{handle\_obstacle()}{handle\_obstacle()}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a2734685853650d0f83024bc1d88787fb} 
+path\+\_\+executor.\+Path\+Executor.\+handle\+\_\+obstacle (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{Robot}{, }\item[{}]{direction}{, }\item[{}]{goal}{, }\item[{}]{dx}{, }\item[{}]{dy}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00241}{241}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a2734685853650d0f83024bc1d88787fb_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a2734685853650d0f83024bc1d88787fb_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classpath__executor_1_1_path_executor_a423857e2c62f6f9573697b6673e56ce7}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!move\_to\_goal@{move\_to\_goal}}
+\index{move\_to\_goal@{move\_to\_goal}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{move\_to\_goal()}{move\_to\_goal()}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a423857e2c62f6f9573697b6673e56ce7} 
+path\+\_\+executor.\+Path\+Executor.\+move\+\_\+to\+\_\+goal (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{goal}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00083}{83}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a423857e2c62f6f9573697b6673e56ce7_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classpath__executor_1_1_path_executor_a423857e2c62f6f9573697b6673e56ce7_icgraph}
+\end{center}
+\end{figure}
+
+
+\label{doc-variable-members}
+\Hypertarget{classpath__executor_1_1_path_executor_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classpath__executor_1_1_path_executor_ab9c9f01a1ebbac6bff0edc755d79fc08}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!cleared@{cleared}}
+\index{cleared@{cleared}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{cleared}{cleared}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_ab9c9f01a1ebbac6bff0edc755d79fc08} 
+str path\+\_\+executor.\+Path\+Executor.\+cleared = "{}False"{}}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00047}{47}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+\Hypertarget{classpath__executor_1_1_path_executor_a827e585f2d680eb9996da5551f6a02ad}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!Failed@{Failed}}
+\index{Failed@{Failed}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{Failed}{Failed}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a827e585f2d680eb9996da5551f6a02ad} 
+str path\+\_\+executor.\+Path\+Executor.\+Failed = "{}False"{}}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00048}{48}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+\Hypertarget{classpath__executor_1_1_path_executor_a994b68eda74b3442580779071216d434}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!motion@{motion}}
+\index{motion@{motion}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{motion}{motion}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a994b68eda74b3442580779071216d434} 
+path\+\_\+executor.\+Path\+Executor.\+motion = Robot\+Motion(\mbox{\hyperlink{classpath__executor_1_1_path_executor_a4e697ef5a62525e2dc3522085487958e}{sim}}, wheels)}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00045}{45}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+\Hypertarget{classpath__executor_1_1_path_executor_ab748dc22c779dff61778fac5b9a1ef8f}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!robot@{robot}}
+\index{robot@{robot}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{robot}{robot}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_ab748dc22c779dff61778fac5b9a1ef8f} 
+int path\+\_\+executor.\+Path\+Executor.\+robot = robot}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00046}{46}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+\Hypertarget{classpath__executor_1_1_path_executor_a4e697ef5a62525e2dc3522085487958e}\index{path\_executor.PathExecutor@{path\_executor.PathExecutor}!sim@{sim}}
+\index{sim@{sim}!path\_executor.PathExecutor@{path\_executor.PathExecutor}}
+\doxysubsubsection{\texorpdfstring{sim}{sim}}
+{\footnotesize\ttfamily \label{classpath__executor_1_1_path_executor_a4e697ef5a62525e2dc3522085487958e} 
+path\+\_\+executor.\+Path\+Executor.\+sim = sim}
+
+
+
+Definition at line \mbox{\hyperlink{path__executor_8py_source_l00044}{44}} of file \mbox{\hyperlink{path__executor_8py_source}{path\+\_\+executor.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sim\+\_\+app/\mbox{\hyperlink{path__executor_8py}{path\+\_\+executor.\+py}}\end{DoxyCompactItemize}

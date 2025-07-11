@@ -1,0 +1,64 @@
+\doxysection{simple\+Synchronous\+Test.\+py}
+\hypertarget{simple_synchronous_test_8py_source}{}\label{simple_synchronous_test_8py_source}\index{RemoteApi/simpleSynchronousTest.py@{RemoteApi/simpleSynchronousTest.py}}
+\mbox{\hyperlink{simple_synchronous_test_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00001}\mbox{\hyperlink{namespacesimple_synchronous_test}{00001}}\ \textcolor{comment}{\#\ This\ small\ example\ illustrates\ how\ to\ use\ the\ remote\ API}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00002}00002\ \textcolor{comment}{\#\ synchronous\ mode.\ The\ synchronous\ mode\ needs\ to\ be}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00003}00003\ \textcolor{comment}{\#\ pre-\/enabled\ on\ the\ server\ side.\ You\ would\ do\ this\ by}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00004}00004\ \textcolor{comment}{\#\ starting\ the\ server\ (e.g.\ in\ a\ child\ script)\ with:}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00005}00005\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00006}00006\ \textcolor{comment}{\#\ simRemoteApi.start(19999,1300,false,true)}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00007}00007\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00008}00008\ \textcolor{comment}{\#\ But\ in\ this\ example\ we\ try\ to\ connect\ on\ port}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00009}00009\ \textcolor{comment}{\#\ 19997\ where\ there\ should\ be\ a\ continuous\ remote\ API}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00010}00010\ \textcolor{comment}{\#\ server\ service\ already\ running\ and\ pre-\/enabled\ for}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00011}00011\ \textcolor{comment}{\#\ synchronous\ mode.}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00012}00012\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00013}00013\ \textcolor{comment}{\#}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00014}00014\ \textcolor{comment}{\#\ IMPORTANT:\ for\ each\ successful\ call\ to\ simxStart,\ there}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00015}00015\ \textcolor{comment}{\#\ should\ be\ a\ corresponding\ call\ to\ simxFinish\ at\ the\ end!}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00017}00017\ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00018}00018\ \ \ \ \ \textcolor{keyword}{import}\ sim}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00019}00019\ \textcolor{keywordflow}{except}:}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00020}00020\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00021}00021\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'"{}sim.py"{}\ could\ not\ be\ imported.\ This\ means\ very\ probably\ that'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00022}00022\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'either\ "{}sim.py"{}\ or\ the\ remoteApi\ library\ could\ not\ be\ found.'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00023}00023\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Make\ sure\ both\ are\ in\ the\ same\ folder\ as\ this\ file,'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00024}00024\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'or\ appropriately\ adjust\ the\ file\ "{}sim.py"{}'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00025}00025\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00026}00026\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{''})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00028}00028\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00029}00029\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00031}00031\ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Program\ started'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00032}00032\ \mbox{\hyperlink{namespacesim_aa15b32d604719a02a8fdaf117ee9362a}{sim.simxFinish}}(-\/1)\ \textcolor{comment}{\#\ just\ in\ case,\ close\ all\ opened\ connections}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00033}\mbox{\hyperlink{namespacesimple_synchronous_test_a660ebefb75819470ac49b487304412a2}{00033}}\ clientID=\mbox{\hyperlink{namespacesim_aa0278273e11a7dd23bb6924cbd8a128c}{sim.simxStart}}(\textcolor{stringliteral}{'127.0.0.1'},19997,\textcolor{keyword}{True},\textcolor{keyword}{True},5000,5)\ \textcolor{comment}{\#\ Connect\ to\ CoppeliaSim}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00034}00034\ \textcolor{keywordflow}{if}\ clientID!=-\/1:}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00035}00035\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Connected\ to\ remote\ API\ server'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00037}00037\ \ \ \ \ \textcolor{comment}{\#\ enable\ the\ synchronous\ mode\ on\ the\ client:}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00038}00038\ \ \ \ \ \mbox{\hyperlink{namespacesim_ac47d7dedacfd56747411ec0ae9e145f2}{sim.simxSynchronous}}(clientID,\textcolor{keyword}{True})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00040}00040\ \ \ \ \ \textcolor{comment}{\#\ start\ the\ simulation:}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00041}00041\ \ \ \ \ \mbox{\hyperlink{namespacesim_a89c634a979e4418b3e2f457a98f92542}{sim.simxStartSimulation}}(clientID,sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00043}00043\ \ \ \ \ \textcolor{comment}{\#\ Now\ step\ a\ few\ times:}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{for}\ i\ \textcolor{keywordflow}{in}\ range(1,10):}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ sys.version\_info[0]\ ==\ 3:}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ input(\textcolor{stringliteral}{'Press\ <enter>\ key\ to\ step\ the\ simulation!'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ \ \ \ \ raw\_input(\textcolor{stringliteral}{'Press\ <enter>\ key\ to\ step\ the\ simulation!'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespacesim_ac545906994ad1c383db601fc11fe12d4}{sim.simxSynchronousTrigger}}(clientID);}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00051}00051\ \ \ \ \ \textcolor{comment}{\#\ stop\ the\ simulation:}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00052}00052\ \ \ \ \ \mbox{\hyperlink{namespacesim_a13687c62101564b2bf5bfb5b30fe1e66}{sim.simxStopSimulation}}(clientID,sim.simx\_opmode\_blocking)}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00054}00054\ \ \ \ \ \textcolor{comment}{\#\ Now\ close\ the\ connection\ to\ CoppeliaSim:}}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00055}00055\ \ \ \ \ \mbox{\hyperlink{namespacesim_aa15b32d604719a02a8fdaf117ee9362a}{sim.simxFinish}}(clientID)}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00056}00056\ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Failed\ connecting\ to\ remote\ API\ server'})}
+\DoxyCodeLine{\Hypertarget{simple_synchronous_test_8py_source_l00058}00058\ \textcolor{keywordflow}{print}\ (\textcolor{stringliteral}{'Program\ ended'})}
+
+\end{DoxyCode}

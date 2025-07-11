@@ -1,0 +1,150 @@
+\doxysection{check\+\_\+nearest\+\_\+robot.\+py}
+\hypertarget{check__nearest__robot_8py_source}{}\label{check__nearest__robot_8py_source}\index{sim\_app/check\_nearest\_robot.py@{sim\_app/check\_nearest\_robot.py}}
+\mbox{\hyperlink{check__nearest__robot_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00001}\mbox{\hyperlink{namespacecheck__nearest__robot}{00001}}\ \textcolor{comment}{\#sim\_app/check\_nearest\_robot.py}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00002}00002\ \textcolor{keyword}{import}\ asyncio}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00003}00003\ \textcolor{keyword}{import}\ math}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00004}00004\ \textcolor{keyword}{from}\ sim\_app.robot\_controller\ \textcolor{keyword}{import}\ OmniRobotController}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00005}00005\ \textcolor{keyword}{from}\ sim\_app\ \textcolor{keyword}{import}\ shared}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00006}00006\ \textcolor{keyword}{from}\ sim\_app.astar\_env\ \textcolor{keyword}{import}\ AStarEnvironment\ ,\ grid\_to\_meters,\ meters\_to\_grid}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00007}00007\ \textcolor{keyword}{from}\ sim\_app.path\_executor\ \textcolor{keyword}{import}\ PathExecutor}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00008}00008\ \textcolor{keyword}{from}\ sim\_app.map\_builder\ \textcolor{keyword}{import}\ build\_occupancy\_grid}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00009}00009\ \textcolor{keyword}{from}\ sim\_app.astar\ \textcolor{keyword}{import}\ AStar}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00010}00010\ \textcolor{keyword}{import}\ sim\_app.robot\_motion\ \textcolor{keyword}{as}\ OmniRobotMotion}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00012}\mbox{\hyperlink{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f}{00012}}\ \textcolor{keyword}{async\ def\ }\mbox{\hyperlink{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f}{plan\_path}}(start\_pos,\ goal\_pos,\ robot\_name):}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00013}00013\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ \ \ Plan\ an\ A*\ path\ from\ start\_pos\ to\ goal\_pos\ in\ meters.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ \ \ Returns\ a\ list\ of\ waypoints\ in\ meters\ if\ successful,\ otherwise\ None.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00017}00017\ \ \ \ \ start\_grid\ =\ meters\_to\_grid(start\_pos[0],\ start\_pos[1])}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00018}00018\ \ \ \ \ goal\_grid\ =\ meters\_to\_grid(goal\_pos[0],\ goal\_pos[1])}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00019}00019\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00021}00021\ \ \ \ \ print(f\textcolor{stringliteral}{"{}📌\ Planning\ path:\ Start\ Grid\ \{start\_grid\},\ Goal\ Grid\ \{goal\_grid\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00022}00022\ \ \ \ \ grid\ =\ build\_occupancy\_grid(robot\_name,\ grid\_size=200,\ cell\_resolution=0.2)\ \ \textcolor{comment}{\#\ fresh\ occupancy\ grid}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00023}00023\ \ \ \ \ env\ =\ AStarEnvironment(grid,\ start\_grid,\ goal\_grid)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00024}00024\ \ \ \ \ path\_finder\ =\ AStar(env)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00025}00025\ \ \ \ \ path\ =\ path\_finder.search(\textcolor{stringliteral}{"{}robot"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00027}00027\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ path:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}❌\ No\ path\ found\ during\ planning!"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00031}00031\ \ \ \ \ path\_in\_meters\ =\ [grid\_to\_meters(*p)\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ path]}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00032}00032\ \ \ \ \ print(f\textcolor{stringliteral}{"{}🚦\ A*\ planned\ path\ with\ \{len(path\_in\_meters)\}\ waypoints."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00033}00033\ \ \ \ \ \textcolor{keywordflow}{return}\ path\_in\_meters}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00035}\mbox{\hyperlink{namespacecheck__nearest__robot_a5a57944f6d75ea2ba270abbb25fa2906}{00035}}\ \textcolor{keyword}{async\ def\ }\mbox{\hyperlink{namespacecheck__nearest__robot_a5a57944f6d75ea2ba270abbb25fa2906}{select\_and\_execute\_nearest\_robot}}(sim,\ goal\_pos):}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00036}00036\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00037}00037\ \textcolor{stringliteral}{\ \ \ \ Selects\ the\ nearest\ available\ robot\ to\ a\ specified\ goal\ position,\ plans\ a\ path,\ and\ executes\ the\ motion.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00038}00038\ \textcolor{stringliteral}{\ \ \ \ This\ function\ initializes\ controllers\ for\ two\ robots,\ determines\ which\ robot\ is\ closest\ to\ the\ goal\ (unless\ a\ robot\ is\ manually\ assigned\ via\ \`{}shared.robot\_name\`{}),\ and\ assigns\ the\ task\ to\ that\ robot.\ It\ then\ plans\ a\ path\ from\ the\ robot's\ current\ position\ to\ the\ goal\ and\ commands\ the\ robot\ to\ follow\ the\ path.\ If\ the\ path\ following\ fails\ due\ to\ an\ obstacle,\ the\ function\ attempts\ to\ replan\ and\ retry.\ The\ function\ handles\ stopping\ the\ robot\ in\ case\ of\ failure\ or\ upon\ completion.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00039}00039\ \textcolor{stringliteral}{\ \ \ \ Args:}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00040}00040\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ sim:\ The\ simulation\ environment\ or\ API\ instance.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00041}00041\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ goal\_pos\ (tuple):\ The\ target\ position\ (x,\ y)\ for\ the\ robot\ to\ reach.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00042}00042\ \textcolor{stringliteral}{\ \ \ \ Returns:}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00043}00043\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ str:\ The\ result\ of\ the\ execution,\ which\ can\ be:}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00044}00044\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ -\/\ "{}DONE"{}:\ Path\ completed\ successfully.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00045}00045\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ -\/\ "{}FAILED"{}:\ Path\ planning\ or\ execution\ failed.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00046}00046\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ -\/\ "{}replanned"{}:\ Path\ was\ replanned\ due\ to\ an\ obstacle\ and\ execution\ loop\ should\ continue.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00047}00047\ \textcolor{stringliteral}{\ \ \ \ Side\ Effects:}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00048}00048\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ -\/\ Updates\ \`{}shared.robot\_start\`{}\ and\ \`{}shared.robot\_name\`{}\ with\ the\ assigned\ robot's\ start\ position\ and\ name.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00049}00049\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ -\/\ Prints\ status\ messages\ to\ the\ console.}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00050}00050\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00052}00052\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00053}00053\ \ \ \ \ controller0\ =\ OmniRobotController()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00054}00054\ \ \ \ \ await\ controller0.init\_handles(sim,\ robot\_name=\textcolor{stringliteral}{'Omnirob0'})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00056}00056\ \ \ \ \ controller1\ =\ OmniRobotController()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00057}00057\ \ \ \ \ await\ controller1.init\_handles(sim,\ robot\_name=\textcolor{stringliteral}{'Omnirob1'})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00059}00059\ \ \ \ \ goal\_pos\ =\ shared.robot\_goal}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00060}00060\ \ \ \ \ print(f\textcolor{stringliteral}{"{}📌\ Shared\ goal:\ \{goal\_pos\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00062}00062\ \ \ \ \ \textcolor{comment}{\#\ If\ robot\ name\ is\ already\ set,\ skip\ selection\ and\ use\ it\ directly}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{if}\ shared.robot\_name\ \textcolor{keywordflow}{in}\ [\textcolor{stringliteral}{"{}Rob0"{}},\ \textcolor{stringliteral}{"{}Rob1"{}}]:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ shared.robot\_name\ ==\ \textcolor{stringliteral}{"{}Rob0"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ assigned\_controller\ =\ controller0}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ start\_pos\ =\ await\ controller0.get\_position()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ assigned\_controller\ =\ controller1}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ start\_pos\ =\ await\ controller1.get\_position()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ robot\_name\ =\ shared.robot\_name}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}🤖\ Using\ manually\ assigned\ robot:\ \{robot\_name\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ pos0\ =\ await\ controller0.get\_position()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ pos1\ =\ await\ controller1.get\_position()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ dist0\ =\ math.hypot(goal\_pos[0]\ -\/\ pos0[0],\ goal\_pos[1]\ -\/\ pos0[1])}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ dist1\ =\ math.hypot(goal\_pos[0]\ -\/\ pos1[0],\ goal\_pos[1]\ -\/\ pos1[1])}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}Distance\ for\ Robot0\ is\ \{dist0\},\ Distance\ For\ RObot\ 1\ is\ \{dist1\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ dist0\ <=\ dist1:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ assigned\_controller\ =\ controller0}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ start\_pos\ =\ pos0}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}🤖\ Robot0\ assigned\ to\ goal"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ assigned\_controller\ =\ controller1}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ start\_pos\ =\ pos1}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}🤖\ Robot1\ assigned\ to\ goal"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ math.isclose(start\_pos[0],\ pos0[0],\ abs\_tol=1e-\/4)\ \textcolor{keywordflow}{and}\ math.isclose(start\_pos[1],\ pos0[1],\ abs\_tol=1e-\/4):}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ robot\_name\ =\ \textcolor{stringliteral}{"{}Rob0"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ robot\_name\ =\ \textcolor{stringliteral}{"{}Rob1"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00092}00092\ \ \ \ \ shared.robot\_start\ =\ start\_pos}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00093}00093\ \ \ \ \ shared.robot\_name\ =\ robot\_name\ \ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00094}00094\ \ \ \ \ path\_in\_meters\ =\ await\ \mbox{\hyperlink{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f}{plan\_path}}(start\_pos,\ goal\_pos,\ robot\_name)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00095}00095\ \ \ \ \ motion\ =\ OmniRobotMotion.RobotMotion(sim,\ assigned\_controller.wheels)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ path\_in\_meters:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ await\ motion.stop()\ \ \textcolor{comment}{\#\ clean\ stop\ if\ plan\ fails}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}❌\ Path\ planning\ failed\ for\ assigned\ robot."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}FAILED"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00100}00100\ \ \ \ \ executor\ =\ PathExecutor(sim,\ assigned\_controller.robot,\ assigned\_controller.wheels)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00101}00101\ \ \ \ \ result\ =\ await\ executor.follow\_path(path\_in\_meters)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00102}00102\ \ \ \ \ print(f\textcolor{stringliteral}{"{}🤖\ Initial\ execution\ result:\ \{result\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00103}00103\ \ \ \ \ replanning\_result\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{if}\ result\ ==\ \textcolor{stringliteral}{"{}replanned"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}🔄\ Path\ replanned\ due\ to\ obstacle."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ start\_pos\ =\ await\ assigned\_controller.get\_position()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ path\_in\_meters\ =\ await\ \mbox{\hyperlink{namespacecheck__nearest__robot_a6119dc98e7acc32ab451ce4fd9f4a56f}{plan\_path}}(start\_pos,\ goal\_pos,\ robot\_name)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ path\_in\_meters:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ await\ motion.stop()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}❌\ Path\ planning\ failed\ for\ assigned\ robot."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}FAILED"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00112}00112\ \ \ \ \ \ \ \ \ executor\ =\ PathExecutor(sim,\ assigned\_controller.robot,\ assigned\_controller.wheels)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ replanning\_result\ =\ await\ executor.follow\_path(path\_in\_meters)}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00114}00114\ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}🤖\ Replanned\ execution\ result:\ \{replanning\_result\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ replanning\_result\ ==\ \textcolor{stringliteral}{"{}DONE"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}✅\ Path\ completed\ successfully\ after\ replanning."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ await\ motion.stop()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}DONE"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ replanning\_result\ ==\ \textcolor{stringliteral}{"{}FAILED"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}❌\ Path\ following\ failed\ after\ replanning."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ await\ motion.stop()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}FAILED"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ replanning\_result\ ==\ \textcolor{stringliteral}{"{}replanned"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}🔄\ Path\ replanned\ again;\ continuing\ execution\ loop..."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}replanned"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00128}00128\ \ \ \ \ \textcolor{comment}{\#\ andle\ original\ result\ if\ there\ was\ no\ replanning}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00129}00129\ \ \ \ \ \textcolor{keywordflow}{if}\ result\ ==\ \textcolor{stringliteral}{"{}DONE"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00130}00130\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}✅\ Path\ completed\ successfully."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00131}00131\ \ \ \ \ \ \ \ \ await\ motion.stop()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}DONE"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{elif}\ result\ ==\ \textcolor{stringliteral}{"{}FAILED"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00134}00134\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}❌\ Path\ following\ failed."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00135}00135\ \ \ \ \ \ \ \ \ await\ motion.stop()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}FAILED"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00137}00137\ \ \ \ \ \textcolor{keywordflow}{elif}\ result\ ==\ \textcolor{stringliteral}{"{}replanned"{}}:}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00138}00138\ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}🔄\ Path\ replanned;\ continuing\ execution\ loop..."{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}replanned"{}}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00141}00141\ \ \ \ \ \textcolor{comment}{\#\ fallback}}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00142}00142\ \ \ \ \ print(f\textcolor{stringliteral}{"{}⚠️\ Unexpected\ execution\ result:\ \{result\}"{}})}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00143}00143\ \ \ \ \ await\ motion.stop()}
+\DoxyCodeLine{\Hypertarget{check__nearest__robot_8py_source_l00144}00144\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}FAILED"{}}}
+
+\end{DoxyCode}

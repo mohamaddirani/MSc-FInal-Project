@@ -1,0 +1,131 @@
+\doxysection{astar\+\_\+env.\+AStar\+Environment Class Reference}
+\hypertarget{classastar__env_1_1_a_star_environment}{}\label{classastar__env_1_1_a_star_environment}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classastar__env_1_1_a_star_environment_a1f341dc9a0b46624f34c6336fc3d9f23}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, grid, start\+\_\+grid, goal\+\_\+grid)
+\item 
+\mbox{\hyperlink{classastar__env_1_1_a_star_environment_a58e28077f47cb0baace3fceb3707f65b}{is\+\_\+at\+\_\+goal}} (self, pos, agent\+\_\+name)
+\item 
+\mbox{\hyperlink{classastar__env_1_1_a_star_environment_adf65b860c86e934e5a5889a6302ce11d}{admissible\+\_\+heuristic}} (self, pos, agent\+\_\+name)
+\item 
+\mbox{\hyperlink{classastar__env_1_1_a_star_environment_a5071371cdf399ffae2c2def6e4cdeac9}{get\+\_\+neighbors}} (self, pos)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classastar__env_1_1_a_star_environment_a04bec0153d6f4d69057eb3677dbee352}{occupancy}} = grid
+\item 
+dict \mbox{\hyperlink{classastar__env_1_1_a_star_environment_a1b2f49ec45c2b2fa1f2abeafb1c2deb7}{agent\+\_\+dict}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}AStarEnvironment provides an environment for A* pathfinding on a 2D grid.
+Attributes:
+    occupancy (np.ndarray): 2D array representing the grid, where 0 indicates a free cell and non-zero indicates an obstacle.
+    agent_dict (dict): Dictionary containing agent information, including start and goal positions.
+Methods:
+    __init__(grid, start_grid, goal_grid):
+        Initializes the environment with the given grid, start, and goal positions.
+    is_at_goal(pos, agent_name):
+        Checks if the given position corresponds to the goal position of the specified agent.
+    admissible_heuristic(pos, agent_name):
+        Computes an admissible heuristic (octile distance) from the given position to the agent's goal.
+    get_neighbors(pos):
+        Returns a list of valid neighboring positions and their movement costs from the given position.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00017}{17}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+
+
+\label{doc-constructors}
+\Hypertarget{classastar__env_1_1_a_star_environment_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classastar__env_1_1_a_star_environment_a1f341dc9a0b46624f34c6336fc3d9f23}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classastar__env_1_1_a_star_environment_a1f341dc9a0b46624f34c6336fc3d9f23} 
+astar\+\_\+env.\+AStar\+Environment.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{grid}{, }\item[{}]{start\+\_\+grid}{, }\item[{}]{goal\+\_\+grid}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00033}{33}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+
+
+\label{doc-func-members}
+\Hypertarget{classastar__env_1_1_a_star_environment_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classastar__env_1_1_a_star_environment_adf65b860c86e934e5a5889a6302ce11d}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}!admissible\_heuristic@{admissible\_heuristic}}
+\index{admissible\_heuristic@{admissible\_heuristic}!astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection{\texorpdfstring{admissible\_heuristic()}{admissible\_heuristic()}}
+{\footnotesize\ttfamily \label{classastar__env_1_1_a_star_environment_adf65b860c86e934e5a5889a6302ce11d} 
+astar\+\_\+env.\+AStar\+Environment.\+admissible\+\_\+heuristic (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{pos}{, }\item[{}]{agent\+\_\+name}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00046}{46}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+\Hypertarget{classastar__env_1_1_a_star_environment_a5071371cdf399ffae2c2def6e4cdeac9}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}!get\_neighbors@{get\_neighbors}}
+\index{get\_neighbors@{get\_neighbors}!astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection{\texorpdfstring{get\_neighbors()}{get\_neighbors()}}
+{\footnotesize\ttfamily \label{classastar__env_1_1_a_star_environment_a5071371cdf399ffae2c2def6e4cdeac9} 
+astar\+\_\+env.\+AStar\+Environment.\+get\+\_\+neighbors (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{pos}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00053}{53}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+\Hypertarget{classastar__env_1_1_a_star_environment_a58e28077f47cb0baace3fceb3707f65b}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}!is\_at\_goal@{is\_at\_goal}}
+\index{is\_at\_goal@{is\_at\_goal}!astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection{\texorpdfstring{is\_at\_goal()}{is\_at\_goal()}}
+{\footnotesize\ttfamily \label{classastar__env_1_1_a_star_environment_a58e28077f47cb0baace3fceb3707f65b} 
+astar\+\_\+env.\+AStar\+Environment.\+is\+\_\+at\+\_\+goal (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{pos}{, }\item[{}]{agent\+\_\+name}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00043}{43}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+
+
+\label{doc-variable-members}
+\Hypertarget{classastar__env_1_1_a_star_environment_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classastar__env_1_1_a_star_environment_a1b2f49ec45c2b2fa1f2abeafb1c2deb7}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}!agent\_dict@{agent\_dict}}
+\index{agent\_dict@{agent\_dict}!astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection{\texorpdfstring{agent\_dict}{agent\_dict}}
+{\footnotesize\ttfamily \label{classastar__env_1_1_a_star_environment_a1b2f49ec45c2b2fa1f2abeafb1c2deb7} 
+dict astar\+\_\+env.\+AStar\+Environment.\+agent\+\_\+dict}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}robot"{}}:\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}start"{}}:\ start\_grid,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}goal"{}}:\ goal\_grid}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00035}{35}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+\Hypertarget{classastar__env_1_1_a_star_environment_a04bec0153d6f4d69057eb3677dbee352}\index{astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}!occupancy@{occupancy}}
+\index{occupancy@{occupancy}!astar\_env.AStarEnvironment@{astar\_env.AStarEnvironment}}
+\doxysubsubsection{\texorpdfstring{occupancy}{occupancy}}
+{\footnotesize\ttfamily \label{classastar__env_1_1_a_star_environment_a04bec0153d6f4d69057eb3677dbee352} 
+astar\+\_\+env.\+AStar\+Environment.\+occupancy = grid}
+
+
+
+Definition at line \mbox{\hyperlink{astar__env_8py_source_l00034}{34}} of file \mbox{\hyperlink{astar__env_8py_source}{astar\+\_\+env.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+sim\+\_\+app/\mbox{\hyperlink{astar__env_8py}{astar\+\_\+env.\+py}}\end{DoxyCompactItemize}

@@ -1,0 +1,97 @@
+\doxysection{astar.\+py}
+\hypertarget{astar_8py_source}{}\label{astar_8py_source}\index{sim\_app/astar.py@{sim\_app/astar.py}}
+\mbox{\hyperlink{astar_8py}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00001}\mbox{\hyperlink{namespaceastar}{00001}}\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00002}00002\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00003}00003\ \textcolor{stringliteral}{AStar\ search}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00004}00004\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00005}00005\ \textcolor{stringliteral}{author:\ Ashwin\ Bose\ (@atb033)}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00006}00006\ \textcolor{stringliteral}{}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00007}00007\ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00008}00008\ \textcolor{keyword}{from}\ sim\_app.astar\_env\ \textcolor{keyword}{import}\ grid\_to\_meters}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00009}00009\ \textcolor{keyword}{from}\ sim\_app\ \textcolor{keyword}{import}\ shared}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00010}\mbox{\hyperlink{classastar_1_1_a_star}{00010}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classastar_1_1_a_star}{AStar}}():}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00011}00011\ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00012}00012\ \textcolor{stringliteral}{\ \ \ \ AStar\ pathfinding\ algorithm\ implementation\ for\ grid-\/based\ environments.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00013}00013\ \textcolor{stringliteral}{\ \ \ \ Attributes:}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00014}00014\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ agent\_dict\ (dict):\ Dictionary\ containing\ agent\ information,\ including\ start\ and\ goal\ positions.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00015}00015\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ admissible\_heuristic\ (callable):\ Function\ to\ compute\ the\ heuristic\ estimate\ from\ a\ state\ to\ the\ goal.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00016}00016\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ is\_at\_goal\ (callable):\ Function\ to\ check\ if\ a\ given\ state\ is\ the\ goal\ for\ a\ specific\ agent.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00017}00017\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ get\_neighbors\ (callable):\ Function\ to\ retrieve\ neighboring\ states\ and\ their\ move\ costs.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00018}00018\ \textcolor{stringliteral}{\ \ \ \ Methods:}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00019}00019\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ reconstruct\_path(came\_from,\ current):}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00020}00020\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ Reconstructs\ the\ path\ from\ the\ start\ node\ to\ the\ current\ node\ using\ the\ came\_from\ mapping.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00021}00021\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ search(agent\_name):}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00022}00022\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ Performs\ the\ A*\ search\ algorithm\ for\ the\ specified\ agent.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00023}00023\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ Returns\ the\ path\ from\ start\ to\ goal\ as\ a\ list\ of\ states\ if\ a\ path\ is\ found,\ otherwise\ returns\ False.}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00024}00024\ \textcolor{stringliteral}{\ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00025}\mbox{\hyperlink{classastar_1_1_a_star_a46ae313f05860ead6794c588d7616d4f}{00025}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{classastar_1_1_a_star_a46ae313f05860ead6794c588d7616d4f}{\_\_init\_\_}}(self,\ env):}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00026}\mbox{\hyperlink{classastar_1_1_a_star_a1e34e3ae4c28f60d5115206b8a83904d}{00026}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classastar_1_1_a_star_a1e34e3ae4c28f60d5115206b8a83904d}{agent\_dict}}\ =\ env.agent\_dict}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00027}\mbox{\hyperlink{classastar_1_1_a_star_ac9c1a7888846e21aabe4258b9d3c6e67}{00027}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classastar_1_1_a_star_ac9c1a7888846e21aabe4258b9d3c6e67}{admissible\_heuristic}}\ =\ env.admissible\_heuristic}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00028}\mbox{\hyperlink{classastar_1_1_a_star_a2bdda680a08965331ca64f087e4502cd}{00028}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classastar_1_1_a_star_a2bdda680a08965331ca64f087e4502cd}{is\_at\_goal}}\ =\ env.is\_at\_goal}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00029}\mbox{\hyperlink{classastar_1_1_a_star_ab4bc47eb7b7200292b13246e40546d5b}{00029}}\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classastar_1_1_a_star_ab4bc47eb7b7200292b13246e40546d5b}{get\_neighbors}}\ =\ env.get\_neighbors}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00031}\mbox{\hyperlink{classastar_1_1_a_star_ac9afceb7a4d390d81b60aed3539c07a5}{00031}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{classastar_1_1_a_star_ac9afceb7a4d390d81b60aed3539c07a5}{reconstruct\_path}}(self,\ came\_from,\ current):}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ total\_path\ =\ [current]}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ current\ \textcolor{keywordflow}{in}\ came\_from.keys():}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \ \ \ \ current\ =\ came\_from[current]}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \ \ \ \ total\_path.append(current)}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ total\_path[::-\/1]}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00038}\mbox{\hyperlink{classastar_1_1_a_star_a9baeca48a92f905e37be2fc91268ca73}{00038}}\ \ \ \ \ \textcolor{keyword}{def\ }\mbox{\hyperlink{classastar_1_1_a_star_a9baeca48a92f905e37be2fc91268ca73}{search}}(self,\ agent\_name):}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00040}00040\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ low\ level\ search\ }}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00041}00041\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ "{}"{}"{}}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ initial\_state\ =\ self.\mbox{\hyperlink{classastar_1_1_a_star_a1e34e3ae4c28f60d5115206b8a83904d}{agent\_dict}}[agent\_name][\textcolor{stringliteral}{"{}start"{}}]}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ step\_cost\ =\ 1}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ closed\_set\ =\ set()}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ open\_set\ =\ \{initial\_state\}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ came\_from\ =\ \{\}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ g\_score\ =\ \{\}\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ g\_score[initial\_state]\ =\ 0}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ f\_score\ =\ \{\}\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ f\_score[initial\_state]\ =\ self.\mbox{\hyperlink{classastar_1_1_a_star_ac9c1a7888846e21aabe4258b9d3c6e67}{admissible\_heuristic}}(initial\_state,\ agent\_name)}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ open\_set:}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ temp\_dict\ =\ \{open\_item:f\_score.setdefault(open\_item,\ float(\textcolor{stringliteral}{"{}inf"{}}))\ \textcolor{keywordflow}{for}\ open\_item\ \textcolor{keywordflow}{in}\ open\_set\}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ current\ =\ min(temp\_dict,\ key=temp\_dict.get)}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\mbox{\hyperlink{classastar_1_1_a_star_a2bdda680a08965331ca64f087e4502cd}{is\_at\_goal}}(current,\ agent\_name):}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ path\ =\ self.\mbox{\hyperlink{classastar_1_1_a_star_ac9afceb7a4d390d81b60aed3539c07a5}{reconstruct\_path}}(came\_from,\ current)}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ shared.latest\_astar\_path\ =\ [grid\_to\_meters(*p)\ \textcolor{keywordflow}{for}\ p\ \textcolor{keywordflow}{in}\ path]}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(\textcolor{stringliteral}{"{}\(\backslash\)n🚦\ A*\ planned\ path:"{}})}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ i,\ p\ \textcolor{keywordflow}{in}\ enumerate(path):}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print(f\textcolor{stringliteral}{"{}\ \ [\{i\}]\ Grid:\ \{p\}\ =>\ Meters:\ \{grid\_to\_meters(*p)\}"{}})}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ path}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ open\_set\ -\/=\ \{current\}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ closed\_set\ |=\ \{current\}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ neighbor\_list\ =\ self.\mbox{\hyperlink{classastar_1_1_a_star_ab4bc47eb7b7200292b13246e40546d5b}{get\_neighbors}}(current)}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (neighbor,\ move\_cost)\ \textcolor{keywordflow}{in}\ neighbor\_list:}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ neighbor\ \textcolor{keywordflow}{in}\ closed\_set:}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tentative\_g\_score\ =\ g\_score.setdefault(current,\ float(\textcolor{stringliteral}{"{}inf"{}}))\ +\ move\_cost}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ neighbor\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ open\_set:}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ open\_set\ |=\ \{neighbor\}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ tentative\_g\_score\ >=\ g\_score.setdefault(neighbor,\ float(\textcolor{stringliteral}{"{}inf"{}})):}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ came\_from[neighbor]\ =\ current}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ g\_score[neighbor]\ =\ tentative\_g\_score}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ f\_score[neighbor]\ =\ g\_score[neighbor]\ +\ self.\mbox{\hyperlink{classastar_1_1_a_star_ac9c1a7888846e21aabe4258b9d3c6e67}{admissible\_heuristic}}(neighbor,\ agent\_name)}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{astar_8py_source_l00091}00091\ }
+
+\end{DoxyCode}

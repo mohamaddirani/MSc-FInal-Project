@@ -14,32 +14,32 @@ vertical_obstacle_threshold = 0.74
 
 class PathExecutor:
     """
-    Executes a given path for a robot in a simulated environment, handling motion, obstacle avoidance, and alignment.
-    Args:
-        sim: The simulation environment object.
-        robot: The robot object or identifier.
-        wheels: The wheels or actuators associated with the robot.
+    Executes a planned path for a robot in a simulation environment, handling movement, obstacle avoidance, and goal alignment.
     Attributes:
         sim: The simulation environment object.
-        motion: Instance of RobotMotion for controlling robot movement.
+        motion: An instance of RobotMotion for controlling robot movement.
         robot: The robot object or identifier.
-        Neglect_Obstacle (bool): Flag indicating whether to ignore detected obstacles.
+        cleared (str): Flag indicating if an obstacle has been cleared ("True"/"False").
+        Failed (str): Flag indicating if path execution has failed ("True"/"False").
     Methods:
+        __init__(sim, robot, wheels):
+            Initializes the PathExecutor with the simulation, robot, and wheels.
         async get_position():
             Retrieves the current (x, y) position of the robot.
         async follow_path(path):
-            Follows a sequence of waypoints, moving the robot along the specified path.
-            Handles goal reaching, obstacle detection, and replanning if necessary.
-        async check_alignment(direction, coordinates_for_goal, dist_front, dist_back, dist_left, dist_right):
-            Checks if the robot is aligned with the goal along the X or Y axis, considering obstacles.
-            Returns alignment status or instructions for further movement.
+            Follows a given path (list of waypoints), moving the robot to each goal while handling obstacles and alignment.
+            Returns "DONE" if the path is completed, "FAILED" if execution fails, or "replanned" if replanning is triggered.
         async move_to_goal(goal):
-            Moves the robot towards a single goal position, handling velocity computation, obstacle detection,
-            and alignment. Returns status indicating movement progress, completion, or failure.
-        async handle_obstacle(Robot, direction, goal, dx, dy, vx, vy):
-            Handles detected obstacles by temporarily replanning the path to avoid them.
-            Moves the robot to a temporary goal until the obstacle is cleared or handling fails.
+            Moves the robot towards a specified goal, checking for obstacles and alignment.
+            Returns "MOVING" if still in progress, "DONE" if the goal is reached, "FAILED" if blocked, or "replanned" if replanning is needed.
+        async check_alignment(direction, coordinates_for_goal):
+            Checks if the robot is aligned with the goal along the X or Y axis based on obstacle direction and goal coordinates.
+            Returns "X-AXIS ALIGNED", "Y-AXIS ALIGNED", or None.
+        async handle_obstacle(Robot, direction, goal, dx, dy):
+            Handles obstacle avoidance by moving towards a temporary goal to bypass the obstacle.
+            Updates the 'cleared' and 'Failed' flags based on the outcome.
     """
+
     def __init__(self, sim, robot, wheels):
         self.sim = sim
         self.motion = RobotMotion(sim, wheels)
@@ -54,6 +54,7 @@ class PathExecutor:
         i = 0
         for goal in path[1:]:
             #print(f"path: {path}")
+            shared.planned_path.append(goal)
             while True:
                 i += 1
                 print(f"Moving try: {i}")
@@ -64,17 +65,14 @@ class PathExecutor:
                 
                 coordinates_for_goal = (shared.robot_goal[0] - goal[0], shared.robot_goal[1] - goal[1])
                 print(f"Result of move_to_goal: {result}")
-                if (i == len(path) - 1) and (abs(coordinates_for_goal[0]) < goal_error_threshold or abs(coordinates_for_goal[1]) > goal_error_threshold):
-                    print("Reached the last goal in the path.")
-                    return "replanned"
                 if result == "replanned" or result == "FAILED" or result == "DONE":
                     print(f"🚨 follow_path(): exiting loop with result: {result}")
                     await asyncio.sleep(0.1)
                     return "replanned" if result == "replanned" else "FAILED" if result == "FAILED" else "DONE"
                 elif result == "MOVING":
-                    if i >= len(path) and (abs(goal[0]) > goal_error_threshold or abs(goal[1]) > goal_error_threshold):
+                    if i >= len(path) and (abs(coordinates_for_goal[0]) > goal_error_threshold or abs(coordinates_for_goal[1]) > goal_error_threshold):
                         print("Reached the end of the path.")
-                        return "replanned"
+                        return "FAILED"
                     await asyncio.sleep(0.1)
                     break
                 
@@ -84,6 +82,7 @@ class PathExecutor:
 
     async def move_to_goal(self, goal):
         current = await self.get_position()
+        shared.executed_path.append(current)
         dx = goal[0] - current[0]
         dy = goal[1] - current[1]
         dist = math.hypot(dx, dy)

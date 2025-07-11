@@ -15,6 +15,21 @@ def grid_to_meters(cx, cy):
     return (x, y)
 
 class AStarEnvironment:
+    """
+    AStarEnvironment provides an environment for A* pathfinding on a 2D grid.
+    Attributes:
+        occupancy (np.ndarray): 2D array representing the grid, where 0 indicates a free cell and non-zero indicates an obstacle.
+        agent_dict (dict): Dictionary containing agent information, including start and goal positions.
+    Methods:
+        __init__(grid, start_grid, goal_grid):
+            Initializes the environment with the given grid, start, and goal positions.
+        is_at_goal(pos, agent_name):
+            Checks if the given position corresponds to the goal position of the specified agent.
+        admissible_heuristic(pos, agent_name):
+            Computes an admissible heuristic (octile distance) from the given position to the agent's goal.
+        get_neighbors(pos):
+            Returns a list of valid neighboring positions and their movement costs from the given position.
+    """
     def __init__(self, grid, start_grid, goal_grid):
         self.occupancy = grid
         self.agent_dict = {

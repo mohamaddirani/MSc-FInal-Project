@@ -1,0 +1,34 @@
+\doxysection{sensor\+\_\+fetch Namespace Reference}
+\hypertarget{namespacesensor__fetch}{}\label{namespacesensor__fetch}\index{sensor\_fetch@{sensor\_fetch}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacesensor__fetch_a13ccc4a5a4fa388889c0357cc3a80547}{fetch\+\_\+sensor\+\_\+data}} (sim, signal\+\_\+name)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{namespacesensor__fetch_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacesensor__fetch_a13ccc4a5a4fa388889c0357cc3a80547}\index{sensor\_fetch@{sensor\_fetch}!fetch\_sensor\_data@{fetch\_sensor\_data}}
+\index{fetch\_sensor\_data@{fetch\_sensor\_data}!sensor\_fetch@{sensor\_fetch}}
+\doxysubsubsection{\texorpdfstring{fetch\_sensor\_data()}{fetch\_sensor\_data()}}
+{\footnotesize\ttfamily \label{namespacesensor__fetch_a13ccc4a5a4fa388889c0357cc3a80547} 
+sensor\+\_\+fetch.\+fetch\+\_\+sensor\+\_\+data (\begin{DoxyParamCaption}\item[{}]{sim}{, }\item[{}]{signal\+\_\+name}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Fetches and decodes sensor data from a simulation signal.
+This asynchronous function retrieves a base64-encoded, CBOR-serialized list of sensor data points from the specified signal in the simulation. It decodes and deserializes the data, updates global dictionaries with the latest and accumulated sensor data, and finds the point with the closest distance value.
+Args:
+    sim: The simulation object providing the `getStringSignal` coroutine method.
+    signal_name (str): The name of the signal to fetch sensor data from.
+Returns:
+    tuple or None: A tuple (x, y, dist) representing the coordinates and distance of the closest point, or None if no valid data is found.
+Side Effects:
+    Updates the global `latest_data` and `all_sensor_data` dictionaries with the latest and accumulated sensor data for the given signal.
+Raises:
+    None. Exceptions are caught and logged; function returns None on failure.
+\end{DoxyVerb}
+ 
+
+Definition at line \mbox{\hyperlink{sensor__fetch_8py_source_l00007}{7}} of file \mbox{\hyperlink{sensor__fetch_8py_source}{sensor\+\_\+fetch.\+py}}.
+

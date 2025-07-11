@@ -1,0 +1,182 @@
+\doxysection{send\+Movement\+Sequence-\/mov Namespace Reference}
+\hypertarget{namespacesend_movement_sequence-mov}{}\label{namespacesend_movement_sequence-mov}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacesend_movement_sequence-mov_a1c07c63fe0762d24e80cc8b1ccc97869}{wait\+For\+Movement\+Executed}} (id)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespacesend_movement_sequence-mov_a89ef2b45e225dbe1bd19872d2978e221}{client\+ID}} = \mbox{\hyperlink{namespacesim_aa0278273e11a7dd23bb6924cbd8a128c}{sim.\+simx\+Start}}(\textquotesingle{}127.\+0.\+0.\+1\textquotesingle{},19997,True,True,5000,5)
+\item 
+str \mbox{\hyperlink{namespacesend_movement_sequence-mov_a6fecf860c833e218215e2e9589023c88}{executed\+Mov\+Id}} = \textquotesingle{}not\+Ready\textquotesingle{}
+\item 
+str \mbox{\hyperlink{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6}{target\+Arm}} = \textquotesingle{}/blue\+Arm\textquotesingle{}
+\item 
+str \mbox{\hyperlink{namespacesend_movement_sequence-mov_a7ae553ec205cd8b125223be92279427f}{string\+Signal\+Name}} = \mbox{\hyperlink{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6}{target\+Arm}}+\textquotesingle{}\+\_\+executed\+Mov\+Id\textquotesingle{}
+\item 
+int \mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}} = 100\texorpdfstring{$\ast$}{*}math.\+pi/180
+\item 
+int \mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}} = 150\texorpdfstring{$\ast$}{*}math.\+pi/180
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_ae6cac3fb762a9fd2c2e92c07f9733826}{max\+Vel}} = \mbox{[}\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}}\mbox{]}
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_a825a62b7448ae1034e9685d1c3b1e15f}{max\+Accel}} = \mbox{[}\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}}\mbox{]}
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_a2b17cc2b54f6539deb3642bcc450a25c}{target\+Vel}} = \mbox{[}0,0,0,0,0,0\mbox{]}
+\item 
+list \mbox{\hyperlink{namespacesend_movement_sequence-mov_add1a628438e37db26d6c4edf1379b1ea}{target\+Config}} = \mbox{[}90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,-\/90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180\mbox{]}
+\item 
+dict \mbox{\hyperlink{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf}{movement\+Data}} = \{"{}id"{}\+:"{}mov\+Seq1"{},"{}type"{}\+:"{}mov"{},"{}target\+Config"{}\+:target\+Config,"{}target\+Vel"{}\+:target\+Vel,"{}max\+Vel"{}\+:max\+Vel,"{}max\+Accel"{}\+:max\+Accel\}
+\item 
+\mbox{\hyperlink{namespacesend_movement_sequence-mov_a94765c851a92a785eef325782fe01a10}{packed\+Movement\+Data}} = msgpack.\+packb(\mbox{\hyperlink{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf}{movement\+Data}})
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{namespacesend_movement_sequence-mov_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{namespacesend_movement_sequence-mov_a1c07c63fe0762d24e80cc8b1ccc97869}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!waitForMovementExecuted@{waitForMovementExecuted}}
+\index{waitForMovementExecuted@{waitForMovementExecuted}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{waitForMovementExecuted()}{waitForMovementExecuted()}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a1c07c63fe0762d24e80cc8b1ccc97869} 
+send\+Movement\+Sequence-\/mov.\+wait\+For\+Movement\+Executed (\begin{DoxyParamCaption}\item[{}]{id}{}\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00040}{40}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespacesend_movement_sequence-mov_a1c07c63fe0762d24e80cc8b1ccc97869_cgraph}
+\end{center}
+\end{figure}
+
+
+\label{doc-var-members}
+\Hypertarget{namespacesend_movement_sequence-mov_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{namespacesend_movement_sequence-mov_a89ef2b45e225dbe1bd19872d2978e221}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!clientID@{clientID}}
+\index{clientID@{clientID}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{clientID}{clientID}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a89ef2b45e225dbe1bd19872d2978e221} 
+send\+Movement\+Sequence-\/mov.\+client\+ID = \mbox{\hyperlink{namespacesim_aa0278273e11a7dd23bb6924cbd8a128c}{sim.\+simx\+Start}}(\textquotesingle{}127.\+0.\+0.\+1\textquotesingle{},19997,True,True,5000,5)}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00029}{29}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a6fecf860c833e218215e2e9589023c88}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!executedMovId@{executedMovId}}
+\index{executedMovId@{executedMovId}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{executedMovId}{executedMovId}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a6fecf860c833e218215e2e9589023c88} 
+str send\+Movement\+Sequence-\/mov.\+executed\+Mov\+Id = \textquotesingle{}not\+Ready\textquotesingle{}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00033}{33}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!mAccel@{mAccel}}
+\index{mAccel@{mAccel}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{mAccel}{mAccel}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215} 
+int send\+Movement\+Sequence-\/mov.\+m\+Accel = 150\texorpdfstring{$\ast$}{*}math.\+pi/180}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00055}{55}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a825a62b7448ae1034e9685d1c3b1e15f}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!maxAccel@{maxAccel}}
+\index{maxAccel@{maxAccel}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{maxAccel}{maxAccel}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a825a62b7448ae1034e9685d1c3b1e15f} 
+list send\+Movement\+Sequence-\/mov.\+max\+Accel = \mbox{[}\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_aef4012fe2e98a634dfb155b44f703215}{m\+Accel}}\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00057}{57}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_ae6cac3fb762a9fd2c2e92c07f9733826}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!maxVel@{maxVel}}
+\index{maxVel@{maxVel}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{maxVel}{maxVel}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_ae6cac3fb762a9fd2c2e92c07f9733826} 
+list send\+Movement\+Sequence-\/mov.\+max\+Vel = \mbox{[}\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}},\mbox{\hyperlink{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}{m\+Vel}}\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00056}{56}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!movementData@{movementData}}
+\index{movementData@{movementData}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{movementData}{movementData}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf} 
+dict send\+Movement\+Sequence-\/mov.\+movement\+Data = \{"{}id"{}\+:"{}mov\+Seq1"{},"{}type"{}\+:"{}mov"{},"{}target\+Config"{}\+:target\+Config,"{}target\+Vel"{}\+:target\+Vel,"{}max\+Vel"{}\+:max\+Vel,"{}max\+Accel"{}\+:max\+Accel\}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00068}{68}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!mVel@{mVel}}
+\index{mVel@{mVel}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{mVel}{mVel}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a08af75c2a2d4b322fc40f63a987f68ad} 
+int send\+Movement\+Sequence-\/mov.\+m\+Vel = 100\texorpdfstring{$\ast$}{*}math.\+pi/180}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00054}{54}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a94765c851a92a785eef325782fe01a10}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!packedMovementData@{packedMovementData}}
+\index{packedMovementData@{packedMovementData}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{packedMovementData}{packedMovementData}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a94765c851a92a785eef325782fe01a10} 
+send\+Movement\+Sequence-\/mov.\+packed\+Movement\+Data = msgpack.\+packb(\mbox{\hyperlink{namespacesend_movement_sequence-mov_a8c98914ed36cc237fb8f96983e14f3cf}{movement\+Data}})}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00069}{69}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a7ae553ec205cd8b125223be92279427f}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!stringSignalName@{stringSignalName}}
+\index{stringSignalName@{stringSignalName}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{stringSignalName}{stringSignalName}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a7ae553ec205cd8b125223be92279427f} 
+str send\+Movement\+Sequence-\/mov.\+string\+Signal\+Name = \mbox{\hyperlink{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6}{target\+Arm}}+\textquotesingle{}\+\_\+executed\+Mov\+Id\textquotesingle{}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00038}{38}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!targetArm@{targetArm}}
+\index{targetArm@{targetArm}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{targetArm}{targetArm}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_aa0c65d4b983a4703532c925fcb014de6} 
+str send\+Movement\+Sequence-\/mov.\+target\+Arm = \textquotesingle{}/blue\+Arm\textquotesingle{}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00035}{35}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_add1a628438e37db26d6c4edf1379b1ea}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!targetConfig@{targetConfig}}
+\index{targetConfig@{targetConfig}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{targetConfig}{targetConfig}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_add1a628438e37db26d6c4edf1379b1ea} 
+list send\+Movement\+Sequence-\/mov.\+target\+Config = \mbox{[}90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,-\/90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180,90\texorpdfstring{$\ast$}{*}math.\+pi/180\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00067}{67}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
+\Hypertarget{namespacesend_movement_sequence-mov_a2b17cc2b54f6539deb3642bcc450a25c}\index{sendMovementSequence-\/mov@{sendMovementSequence-\/mov}!targetVel@{targetVel}}
+\index{targetVel@{targetVel}!sendMovementSequence-\/mov@{sendMovementSequence-\/mov}}
+\doxysubsubsection{\texorpdfstring{targetVel}{targetVel}}
+{\footnotesize\ttfamily \label{namespacesend_movement_sequence-mov_a2b17cc2b54f6539deb3642bcc450a25c} 
+list send\+Movement\+Sequence-\/mov.\+target\+Vel = \mbox{[}0,0,0,0,0,0\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{send_movement_sequence-mov_8py_source_l00058}{58}} of file \mbox{\hyperlink{send_movement_sequence-mov_8py_source}{send\+Movement\+Sequence-\/mov.\+py}}.
+
