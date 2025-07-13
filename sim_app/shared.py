@@ -23,5 +23,23 @@ executed_path = []
 planned_path = []
 
 # Shared robot goal 
-robot_goal = [] #(-6.24974, +6.36916)
+#robot_goal = [] #(-6.24974, +6.36916)
 robot_start = (0.0, 0.0)
+
+#adding multiple goals for different robots
+# Dictionary to store current goal of each robot
+robot_goal = {
+    "Rob0": None,
+    "Rob1": None,
+    "Rob2": None
+}
+
+# Dictionary to track each robot’s status
+robot_status = {
+    "Rob0": "idle",
+    "Rob1": "idle",
+    "Rob2": "idle"
+}
+
+# Optional: central message log
+message_log = []

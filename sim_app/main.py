@@ -1,87 +1,123 @@
 # sim_app/main.py
+import os
+import json
 import asyncio
 from sim_app.sim_client import get_sim
 from sim_app.sensor_fetch import fetch_sensor_data
 from sim_app import shared
-from sim_app.check_nearest_robot import select_and_execute_nearest_robot
+from sim_app.check_nearest_robot import excute
 from sim_app.plotter import plot_astar_path, plot_sensor_data, plot_executed_path, plot_planned_path
-from sim_app.shared import latest_astar_path, executed_path, planned_path
+from sim_app.robot_controller import OmniRobotController
+from time import time
+import time
+
+async def wait_for_any_robot_goal():
+    print("⏳ Waiting for any robot goal from LLM...")
+    while True:
+        try:
+            if os.path.exists("shared_goal.json"):
+                # Read & load the file content
+                with open("shared_goal.json", "r") as f:
+                    goal_data = json.load(f)
+
+                # Set the goals in shared memory
+                for robot_id, goal in goal_data.items():
+                    shared.robot_goal[robot_id] = goal
+                    shared.robot_status[robot_id] = "busy"
+
+                robot_id, goal_pos = list(goal_data.items())[0]
+                shared.robot_name = robot_id
+                shared.robot_goal[robot_id] = goal_pos
+                shared.robot_status[robot_id] = "busy"
 
 
+                # Wait briefly to ensure file is released before deletion
+                await asyncio.sleep(0.1)
 
-async def wait_for_goal():
-    print("⏳ Waiting for goal from LLM...")
-    while shared.robot_goal is None:
+                # Attempt to delete file safely
+                try:
+                    os.remove("shared_goal.json")
+                except PermissionError:
+                    print("⚠️ File still locked, will retry delete shortly...")
+                    await asyncio.sleep(0.5)
+                    try:
+                        os.remove("shared_goal.json")
+                    except Exception as e:
+                        print(f"❌ Failed to delete shared_goal.json: {e}")
+                print(f"✅ Loaded goal: {shared.robot_goal}")
+                break
+        except Exception as e:
+            print(f"⚠️ Error while reading goal file: {e}")
         await asyncio.sleep(0.5)
-    print(f"✅ Goal received: {shared.robot_goal}")
+
+async def get_robot_position(sim, robot_name):
+    controller = OmniRobotController()
+    await controller.init_handles(sim, robot_name=f"Omnirob{robot_name[-1]}")
+    return await controller.get_position()
+
 
 async def run():
-    """
-    Asynchronously runs the main simulation loop for robot path planning and execution.
-    This function waits for a goal to be set, connects to the CoppeliaSim simulation environment,
-    and starts the simulation. In a continuous loop, it fetches sensor data for multiple robots,
-    selects and commands the nearest robot to execute a path toward the goal, and generates plots
-    for sensor data and paths. The loop handles replanning if obstacles are detected and terminates
-    when the robot reaches the goal or fails. Handles graceful shutdown on user interruption.
-    Raises:
-        KeyboardInterrupt: If the user interrupts the execution.
-    """
-    await wait_for_goal()
+        
+    # Clear any previously saved goal
+    if os.path.exists("shared_goal.json"):
+        print("🧹 Clearing previous shared goal...")
+        with open("shared_goal.json", "w") as f:
+            json.dump({
+                "Rob0": None,
+                "Rob1": None,
+                "Rob2": None
+            }, f)
+
+    await wait_for_any_robot_goal()
 
     client, sim = await get_sim()
     print("✅ Connected to CoppeliaSim")
 
     await sim.startSimulation()
 
+    active_tasks = {}
+
     try:
+       
         while True:
-            # Always get latest sensors before planning
-            
-            await fetch_sensor_data(sim, "Rob0_S300_sensor1")
-            await fetch_sensor_data(sim, "Rob0_S300_sensor2")
-            await fetch_sensor_data(sim, "Rob0_S3001_sensor1")
-            await fetch_sensor_data(sim, "Rob0_S3001_sensor2")
-            await fetch_sensor_data(sim, "Rob1_S300_sensor1")
-            await fetch_sensor_data(sim, "Rob1_S300_sensor2")
-            await fetch_sensor_data(sim, "Rob1_S3001_sensor1")
-            await fetch_sensor_data(sim, "Rob1_S3001_sensor2")
+            # Assign tasks for all robots with goals
+            for robot_name, goal in shared.robot_goal.items():
+                if goal and robot_name not in active_tasks:
+                    print(f"🚀 Launching task for {robot_name} at {time.time()}")
+                    start_pos = await get_robot_position(sim, robot_name)
+                    task = asyncio.create_task(excute(sim, start_pos, robot_name, goal))
+                    active_tasks[robot_name] = task
 
-            goal_pos = shared.robot_goal
-            result = await select_and_execute_nearest_robot(sim, goal_pos)
-            print(f"🤖 Selected robot execution result: {result}")
+            # Check and handle completed tasks
+            done_robots = []
+            for robot_name, task in active_tasks.items():
+                if task.done():
+                    result = task.result()
+                    print(f"🏁 Final outcome for {robot_name}: {result}")
+                    shared.robot_status[robot_name] = "idle"
+                    shared.robot_goal[robot_name] = None
+                    done_robots.append(robot_name)
 
-            if shared.robot_name:
-                plot_sensor_data(shared.robot_name, filename=f"sensor_data_{shared.robot_name}.png")
-                plot_astar_path(
-                    path=latest_astar_path,
-                    start=shared.robot_start,
-                    goal=shared.robot_goal,
-                    filename=f"astar_path_{shared.robot_name}.png"
-                )
-                plot_executed_path(
-                    path=executed_path,
-                    start=shared.robot_start,
-                    goal=shared.robot_goal,
-                    filename=f"executed_path_{shared.robot_name}.png"
-                )
-                plot_planned_path(
-                    path=planned_path,
-                    start=shared.robot_start,
-                    goal=shared.robot_goal,
-                    filename=f"planned_path_{shared.robot_name}.png"
-                )
+            for robot in done_robots:
+                del active_tasks[robot]
 
+            # Wait for more goals if none are active
+            if all(goal is None for goal in shared.robot_goal.values()):
+                print("🕓 All goals completed. Waiting for new goal...")
+                await wait_for_any_robot_goal()
 
-            if result == "replanned":
-                print("🔄 Obstacle triggered replan. Regenerating path...")
-                await asyncio.sleep(0.5)
-                continue
-            elif result in ["DONE", "FAILED"]:
-                print(f"🏁 Final outcome: {result}")
-                shared.robot_goal = None  # Clear shared goal
-                break
+            await asyncio.sleep(0.1)
 
-            
     except KeyboardInterrupt:
         print("🛑 Stopped by user.")
         await client.__aexit__(None, None, None)
+
+if __name__ == "__main__":
+    import sys
+    import asyncio
+
+    if sys.platform == "win32" and sys.version_info >= (3, 8):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    asyncio.run(run())
+

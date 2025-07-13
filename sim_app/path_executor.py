@@ -40,18 +40,23 @@ class PathExecutor:
             Updates the 'cleared' and 'Failed' flags based on the outcome.
     """
 
-    def __init__(self, sim, robot, wheels):
+    def __init__(self, sim, robot, wheels, robot_name):
         self.sim = sim
         self.motion = RobotMotion(sim, wheels)
         self.robot = robot
-        self.cleared = "False"  # Flag to indicate if obstacle is cleared
+        self.robot_name = robot_name  # <- Add this
+        self.cleared = "False"
         self.Failed = "False"
+
     async def get_position(self):
         pos = await self.sim.getObjectPosition(self.robot, -1)
         return pos[:2]
 
     async def follow_path(self, path):
         i = 0
+        robot_name = self.robot_name  # use instance variable instead of shared
+
+
         for goal in path[1:]:
             #print(f"path: {path}")
             shared.planned_path.append(goal)
@@ -62,8 +67,9 @@ class PathExecutor:
                 
                 result = await self.move_to_goal(goal)
                 print(f"✅ move_to_goal returned: {result}")
-                
-                coordinates_for_goal = (shared.robot_goal[0] - goal[0], shared.robot_goal[1] - goal[1])
+                current = await self.get_position()
+                goal_coords = shared.robot_goal[self.robot_name]
+                coordinates_for_goal = (goal_coords[0] - current[0], goal_coords[1] - current[1])
                 print(f"Result of move_to_goal: {result}")
                 if result == "replanned" or result == "FAILED" or result == "DONE":
                     print(f"🚨 follow_path(): exiting loop with result: {result}")
@@ -81,12 +87,14 @@ class PathExecutor:
 
 
     async def move_to_goal(self, goal):
+        robot_name = self.robot_name
         current = await self.get_position()
         shared.executed_path.append(current)
         dx = goal[0] - current[0]
         dy = goal[1] - current[1]
         dist = math.hypot(dx, dy)
-        coordinates_for_goal = (shared.robot_goal[0] - current[0], shared.robot_goal[1] - current[1])
+        goal_coords = shared.robot_goal[self.robot_name]
+        coordinates_for_goal = (goal_coords[0] - current[0], goal_coords[1] - current[1])
         
         dx = 0 if abs(dx) < goal_error_threshold else dx
         dy = 0 if abs(dy) < goal_error_threshold else dy
@@ -195,7 +203,7 @@ class PathExecutor:
                 if direction[0] != "Free":
                     await asyncio.sleep(0.1)
                     await self.motion.stop()
-                    await self.handle_obstacle(Robot, direction[0], shared.robot_goal, dx, dy)
+                    await self.handle_obstacle(direction[0], dx, dy)
                     if self.Failed == "True":
                         #print("🔁 Replanning complete. Resuming original goal.")
                         return "FAILED"  # Continue main loop after obstacle is cleared
@@ -205,7 +213,7 @@ class PathExecutor:
                 elif direction[1] != "Free":
                     await asyncio.sleep(0.1)
                     await self.motion.stop()
-                    await self.handle_obstacle(Robot, direction[1], shared.robot_goal,  dx, dy)
+                    await self.handle_obstacle(direction[1], dx, dy)
                     if self.Failed == "True":
                         #print("🔁 Replanning complete. Resuming original goal.")
                         return "FAILED"  # Continue main loop after obstacle is cleared
@@ -238,35 +246,35 @@ class PathExecutor:
             else:
                 return None
 
-    async def handle_obstacle(self, Robot, direction, goal, dx, dy):
-            self.cleared = "False"  # Reset flag for obstacle handling
-            current_pos = await self.get_position()
-            temp_goal = None
-            if direction in ["left", "right"]:
-                temp_goal = (current_pos[0], goal[1])
-            elif direction in ["front", "back"]:
-                temp_goal = (goal[0], current_pos[1])
-            a=0
-            # Move to temp goal until obstacle clears
-            # if(dx == 0 and dy == 0):
-            #     return "FAILED"
-            # else:
-            while a < 25:
-                new_direction = check_sensors_for_obstacle(dx, dy, Robot)
-                print(f"tries: {a}")
-                new_current_pos = await self.get_position()
-                new_coordinates_for_goal = [(shared.robot_goal[0] - new_current_pos[0]) , (shared.robot_goal[1] - new_current_pos[1])]
-                print(f"new_direction[0]: {new_direction[0]}, new_direction[1]: {new_direction[1]}, direction: {direction}")
-                print(f"coordinates_for_goal[0] = {new_coordinates_for_goal[0]}, coordinates_for_goal[0] = {new_coordinates_for_goal[1]}")
-                if(abs(new_coordinates_for_goal[0]) <= 0.08 or abs(new_coordinates_for_goal[1]) <= 0.08):
-                    a = 25
-                    print(f"a = {a}")
-                    self.Failed = "True"
-                    return "FAILED"
-                elif new_direction[0] != direction and new_direction[1] != direction:
-                    a = 25
-                    self.cleared = "True"
-                    break
-                await self.move_to_goal(temp_goal)  # Keep moving to temp goal
-                await asyncio.sleep(0.01)
-                a += 1
+    async def handle_obstacle(self, direction, dx, dy):
+        self.cleared = "False"
+        Robot = self.robot_name
+        current_pos = await self.get_position()
+        robot_goal = shared.robot_goal[Robot]
+
+        if direction in ["left", "right"]:
+            temp_goal = (current_pos[0], robot_goal[1])
+        elif direction in ["front", "back"]:
+            temp_goal = (robot_goal[0], current_pos[1])
+        else:
+            temp_goal = current_pos  # fallback
+
+        a = 0
+        while a < 25:
+            new_direction = check_sensors_for_obstacle(dx, dy, Robot)
+            new_current_pos = await self.get_position()
+            new_coordinates_for_goal = [
+                robot_goal[0] - new_current_pos[0],
+                robot_goal[1] - new_current_pos[1]
+            ]
+
+            if abs(new_coordinates_for_goal[0]) <= 0.08 or abs(new_coordinates_for_goal[1]) <= 0.08:
+                self.Failed = "True"
+                return "FAILED"
+            elif new_direction[0] != direction and new_direction[1] != direction:
+                self.cleared = "True"
+                break
+
+            await self.move_to_goal(temp_goal)
+            await asyncio.sleep(0.01)
+            a += 1
