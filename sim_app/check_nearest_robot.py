@@ -8,7 +8,8 @@ from sim_app.path_executor import PathExecutor
 from sim_app.map_builder import build_occupancy_grid
 from sim_app.astar import AStar
 import sim_app.robot_motion as OmniRobotMotion
-
+from time import time
+import time
 async def plan_path(start_pos, goal_pos, robot_name):
     """
     Plan an A* path from start_pos to goal_pos in meters.
@@ -32,113 +33,97 @@ async def plan_path(start_pos, goal_pos, robot_name):
     print(f"🚦 A* planned path with {len(path_in_meters)} waypoints.")
     return path_in_meters
 
-async def select_and_execute_nearest_robot(sim, goal_pos):
+async def find_available_robot(sim, goal_pos):
     """
-    Selects the nearest available robot to a specified goal position, plans a path, and executes the motion.
-    This function initializes controllers for two robots, determines which robot is closest to the goal (unless a robot is manually assigned via `shared.robot_name`), and assigns the task to that robot. It then plans a path from the robot's current position to the goal and commands the robot to follow the path. If the path following fails due to an obstacle, the function attempts to replan and retry. The function handles stopping the robot in case of failure or upon completion.
-    Args:
-        sim: The simulation environment or API instance.
-        goal_pos (tuple): The target position (x, y) for the robot to reach.
-    Returns:
-        str: The result of the execution, which can be:
-            - "DONE": Path completed successfully.
-            - "FAILED": Path planning or execution failed.
-            - "replanned": Path was replanned due to an obstacle and execution loop should continue.
-    Side Effects:
-        - Updates `shared.robot_start` and `shared.robot_name` with the assigned robot's start position and name.
-        - Prints status messages to the console.
+    Selects the nearest available (idle) robot to the given goal_pos.
+    Returns (robot_id, start_position) or (None, None) if no robot is free.
     """
+    candidates = []
 
-    
+    # Setup robot controllers
     controller0 = OmniRobotController()
     await controller0.init_handles(sim, robot_name='Omnirob0')
 
     controller1 = OmniRobotController()
     await controller1.init_handles(sim, robot_name='Omnirob1')
 
-    goal_pos = shared.robot_goal
-    print(f"📌 Shared goal: {goal_pos}")
-
-    # If robot name is already set, skip selection and use it directly
-    if shared.robot_name in ["Rob0", "Rob1"]:
-        if shared.robot_name == "Rob0":
-            assigned_controller = controller0
-            start_pos = await controller0.get_position()
-        else:
-            assigned_controller = controller1
-            start_pos = await controller1.get_position()
-        robot_name = shared.robot_name
-        print(f"🤖 Using manually assigned robot: {robot_name}")
-    else:
+    # Check if Rob0 is idle
+    if shared.robot_status["Rob0"] == "idle":
         pos0 = await controller0.get_position()
-        pos1 = await controller1.get_position()
-
         dist0 = math.hypot(goal_pos[0] - pos0[0], goal_pos[1] - pos0[1])
+        candidates.append(("Rob0", pos0, dist0))
+
+    # Check if Rob1 is idle
+    if shared.robot_status["Rob1"] == "idle":
+        pos1 = await controller1.get_position()
         dist1 = math.hypot(goal_pos[0] - pos1[0], goal_pos[1] - pos1[1])
-        print(f"Distance for Robot0 is {dist0}, Distance For RObot 1 is {dist1}")
-        if dist0 <= dist1:
-            assigned_controller = controller0
-            start_pos = pos0
-            print("🤖 Robot0 assigned to goal")
-        else:
-            assigned_controller = controller1
-            start_pos = pos1
-            print("🤖 Robot1 assigned to goal")
-        if math.isclose(start_pos[0], pos0[0], abs_tol=1e-4) and math.isclose(start_pos[1], pos0[1], abs_tol=1e-4):
-            robot_name = "Rob0"
-        else:
-            robot_name = "Rob1"
-        
+        candidates.append(("Rob1", pos1, dist1))
+
+    # If no idle robots
+    if not candidates:
+        print("⛔ No available idle robots.")
+        return None, None
+
+    # Sort by distance and select nearest
+    selected = sorted(candidates, key=lambda x: x[2])[0]
+    robot_id, start_pos, _ = selected
+    print(f"✅ Nearest available robot: {robot_id} at {start_pos}")
+    return robot_id, start_pos
+
+async def excute(sim, start_pos, robot_name, goal_pos):
+    # Choose and initialize the correct controller
+    if robot_name == "Rob0":
+        controller = OmniRobotController()
+        await controller.init_handles(sim, robot_name="Omnirob0")
+    elif robot_name == "Rob1":
+        controller = OmniRobotController()
+        await controller.init_handles(sim, robot_name="Omnirob1")
+    else:
+        print(f"⚠️ Unknown robot name: {robot_name}")
+        return "FAILED"
+
     shared.robot_start = start_pos
-    shared.robot_name = robot_name  
+    shared.robot_name = robot_name
+
     path_in_meters = await plan_path(start_pos, goal_pos, robot_name)
-    motion = OmniRobotMotion.RobotMotion(sim, assigned_controller.wheels)
+    motion = OmniRobotMotion.RobotMotion(sim, controller.wheels)
+
     if not path_in_meters:
-        await motion.stop()  # clean stop if plan fails
+        await motion.stop()
         print("❌ Path planning failed for assigned robot.")
         return "FAILED"
-    executor = PathExecutor(sim, assigned_controller.robot, assigned_controller.wheels)
+
+    executor = PathExecutor(sim, controller.robot, controller.wheels, robot_name)
+
     result = await executor.follow_path(path_in_meters)
     print(f"🤖 Initial execution result: {result}")
-    replanning_result = None
+
     if result == "replanned":
         print("🔄 Path replanned due to obstacle.")
-        start_pos = await assigned_controller.get_position()
+        start_pos = await controller.get_position()
         path_in_meters = await plan_path(start_pos, goal_pos, robot_name)
         if not path_in_meters:
             await motion.stop()
-            print("❌ Path planning failed for assigned robot.")
             return "FAILED"
-        executor = PathExecutor(sim, assigned_controller.robot, assigned_controller.wheels)
+
+        executor = PathExecutor(sim, controller.robot, controller.wheels, robot_name)
+
         replanning_result = await executor.follow_path(path_in_meters)
-        print(f"🤖 Replanned execution result: {replanning_result}")
 
         if replanning_result == "DONE":
             print("✅ Path completed successfully after replanning.")
             await motion.stop()
             return "DONE"
-        elif replanning_result == "FAILED":
+        else:
             print("❌ Path following failed after replanning.")
             await motion.stop()
             return "FAILED"
-        elif replanning_result == "replanned":
-            print("🔄 Path replanned again; continuing execution loop...")
-            return "replanned"
 
-    # andle original result if there was no replanning
     if result == "DONE":
         print("✅ Path completed successfully.")
-        await motion.stop()
-        return "DONE"
-    elif result == "FAILED":
+    else:
         print("❌ Path following failed.")
-        await motion.stop()
-        return "FAILED"
-    elif result == "replanned":
-        print("🔄 Path replanned; continuing execution loop...")
-        return "replanned"
 
-    # fallback
-    print(f"⚠️ Unexpected execution result: {result}")
     await motion.stop()
-    return "FAILED"
+    print(f"🏁 {robot_name} finished at {time.time()}")
+    return result

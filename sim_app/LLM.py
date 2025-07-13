@@ -1,25 +1,31 @@
 # sim_app/LLM.py
 
+import json
 import speech_recognition as sr
 from openai import OpenAI
 import json
 import sim_app.shared as shared
+import time
+import asyncio
+from sim_app.check_nearest_robot import find_available_robot
 
-# Initialize OpenAI client with your API key
-client = OpenAI(api_key="Hidden for security reasons")
+# Initialize OpenAI client
+client = OpenAI(api_key="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")
 
 # Predefined map of destination labels to coordinates
 location_map = {
     "point a": (1.5, 3.0),
     "point b": (-2.0, 1.0),
-    "point c": (8.125, 8.15)
+    "point c": (-6.24974, +6.36916)
 }
 
-# Step 1: Recognize speech from microphone
+# List of known robot names
+robot_list = ["Rob0", "Rob1", "Rob2"]
+
 def recognize_speech():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        print("🎙️ Say your command...")
+        print("\n🎙️ Say your command...")
         audio = recognizer.listen(source)
     try:
         text = recognizer.recognize_google(audio)
@@ -29,54 +35,23 @@ def recognize_speech():
         print("❌ Could not understand audio.")
         return None
 
-# Step 2: Parse command using GPT
 def parse_command_with_gpt(text):
-    """
-    Parses a natural language robot command using GPT and returns a structured JSON object.
-    Given a text command, this function sends a prompt to a GPT model to extract:
-    - The robot ID (if specified, e.g., "Robot1", "Robot0"; otherwise null)
-    - The destination (e.g., "point A", "point B", "point C")
-    The function expects the GPT model to respond with a JSON object in the format:
-        {
-            "robot_id": "Robot1" or null,
-            "destination": "point A"
-        }
-    Args:
-        text (str): The natural language command to parse.
-    Returns:
-        dict or None: A dictionary with keys "robot_id" and "destination" if parsing is successful,
-                        or None if an error occurs.
-
-    """
     prompt = f"""
-        You are an API that receives robot commands in natural language and returns JSON only.
+    You are an API that receives robot commands in natural language and returns JSON only.
 
-        Each command might include:
-        - A destination (e.g., "point A", "point C")
-        - An optional robot ID (like "Robot1", "Robot0")
+    Each command might include:
+    - A destination (e.g., "point A", "point C")
+    - An optional robot ID (like "Robot1", "Robot0")
 
-        If no robot is mentioned, return null for "robot_id".
+    If no robot is mentioned, return null for "robot_id".
 
-        Always return in this JSON format:
-        {{"robot_id": "Robot1" or null, "destination": "point A"}}
+    Always return in this JSON format:
+    {{"robot_id": "Robot1" or null, "destination": "point A"}}
 
-        Examples:
-        Input: "Robot1 go to point A"
-        Output: {{"robot_id": "Robot1", "destination": "point A"}}
-
-        Input: "Go to point B"
-        Output: {{"robot_id": null, "destination": "point B"}}
-
-        Input: "Send someone to point C"
-        Output: {{"robot_id": null, "destination": "point C"}}
-
-        Input: "Robot zero move to point C"
-        Output: {{"robot_id": "Robot0", "destination": "point C"}}
-
-        Now parse:
-        "{text}"
-        Respond with JSON only. No explanation.
-        """
+    Now parse:
+    "{text}"
+    Respond with JSON only. No explanation.
+    """
 
     try:
         response = client.chat.completions.create(
@@ -85,8 +60,6 @@ def parse_command_with_gpt(text):
         )
 
         reply = response.choices[0].message.content.strip()
-
-        # 🧹 Remove Markdown formatting and labels like "json"
         if reply.startswith("```"):
             reply = reply.split("```")[1].strip()
         if reply.lower().startswith("json"):
@@ -97,32 +70,79 @@ def parse_command_with_gpt(text):
 
     except Exception as e:
         print("❌ GPT error:", e)
-        print("📝 Raw GPT output that caused error:", reply)
+        if 'reply' in locals():
+            print("📝 Raw GPT output that caused error:", reply)
         return None
 
 
-
-# Step 3: Convert destination string to coordinates
 def get_coordinates(destination):
     if destination is None:
-        print("⚠️ No destination provided. Waiting for a valid command.")
+        print("⚠️ No destination provided.")
         return None
     coords = location_map.get(destination.lower())
     if coords is None:
-        print(f"⚠️ Unknown destination: '{destination}'. Waiting for a valid command.")
+        print(f"⚠️ Unknown destination: '{destination}'.")
     return coords
 
+def find_available_robot():
+    for robot in robot_list:
+        if shared.robot_status.get(robot) == "idle":
+            return robot
+    return None
 
 
-# Step 4: Send movement command to the robot (stub)
-def send_to_robot(robot_id, coordinates):
-    if not coordinates:
-        print("⚠️ No valid coordinates. Robot not dispatched.")
-        shared.robot_goal = None
-        shared.robot_name = None
-        return
-    print(f"🚀 Sending {robot_id or 'auto-selected robot'} to coordinates {coordinates}")
-    shared.robot_goal = list(coordinates)
-    shared.robot_name = robot_id.replace("Robot", "Rob") if robot_id else None
+
+async def send_to_robot(sim, robot_id, goal_pos):
+    if robot_id is None:
+        robot_id, start_pos = await find_available_robot(sim, goal_pos)
+        if robot_id is None:
+            print("⚠️ Could not find available robot.")
+            return
+    else:
+        robot_id = robot_id.replace("Robot", "Rob")
+        start_pos = None  # Optional: can also look it up from controller if needed
+
+    print(f"🚀 Sending {robot_id} to coordinates {goal_pos}")
+
+    shared.robot_name = robot_id
+    shared.robot_goal[robot_id] = goal_pos
+    shared.robot_status[robot_id] = "busy"
+    if start_pos:
+        shared.robot_start = start_pos
+
+    # Save to file so main.py picks it up
+    with open("shared_goal.json", "w") as f:
+        json.dump({robot_id: goal_pos}, f)
 
 
+async def main_loop(sim):
+    print("🤖 LLM Command Listener is active. Press Ctrl+C to stop.")
+    while True:
+        try:
+            text = recognize_speech()
+            if not text:
+                continue
+            
+            parsed = parse_command_with_gpt(text)
+            if parsed:
+                dest = parsed.get("destination")
+                robot = parsed.get("robot_id")
+                coords = get_coordinates(dest)
+                if coords is None:
+                    print("🛑 Invalid location. Try again.")
+                    continue
+                await send_to_robot(sim, robot, coords)
+            time.sleep(1)
+        except KeyboardInterrupt:
+            print("\n👋 Stopping LLM listener.")
+            break
+
+if __name__ == "__main__":
+    import asyncio
+    from sim_app.sim_client import get_sim
+
+    async def start():
+        client, sim = await get_sim()
+        await main_loop(sim)
+
+    asyncio.run(start())
