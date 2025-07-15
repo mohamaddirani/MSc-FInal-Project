@@ -90,8 +90,6 @@ def find_available_robot():
             return robot
     return None
 
-
-
 async def send_to_robot(sim, robot_id, goal_pos):
     if robot_id is None:
         robot_id, start_pos = await find_available_robot(sim, goal_pos)
@@ -117,25 +115,28 @@ async def send_to_robot(sim, robot_id, goal_pos):
 
 async def main_loop(sim):
     print("🤖 LLM Command Listener is active. Press Ctrl+C to stop.")
-    while True:
-        try:
-            text = recognize_speech()
-            if not text:
-                continue
+    # while True:
+    #     try:
+    #         text = recognize_speech()
+    #         if not text:
+    #             continue
             
-            parsed = parse_command_with_gpt(text)
-            if parsed:
-                dest = parsed.get("destination")
-                robot = parsed.get("robot_id")
-                coords = get_coordinates(dest)
-                if coords is None:
-                    print("🛑 Invalid location. Try again.")
-                    continue
-                await send_to_robot(sim, robot, coords)
-            time.sleep(1)
-        except KeyboardInterrupt:
-            print("\n👋 Stopping LLM listener.")
-            break
+    #         parsed = parse_command_with_gpt(text)
+    #         if parsed:
+    #             dest = parsed.get("destination")
+    #             robot = parsed.get("robot_id")
+    #             coords = get_coordinates(dest)
+    #             if coords is None:
+    #                 print("🛑 Invalid location. Try again.")
+    #                 continue
+    #             await send_to_robot(sim, robot, coords)
+    #         time.sleep(1)
+    #     except KeyboardInterrupt:
+    #         print("\n👋 Stopping LLM listener.")
+    #         break
+    robot = "Robot0"
+    coords =[-6.24974 , +6.36916]
+    await send_to_robot(sim, robot, coords)
 
 if __name__ == "__main__":
     import asyncio

@@ -93,37 +93,26 @@ async def excute(sim, start_pos, robot_name, goal_pos):
         print("❌ Path planning failed for assigned robot.")
         return "FAILED"
 
-    executor = PathExecutor(sim, controller.robot, controller.wheels, robot_name)
+    executor = PathExecutor(sim, robot_name, controller.wheels, controller.robot)
 
     result = await executor.follow_path(path_in_meters)
-    print(f"🤖 Initial execution result: {result}")
 
     if result == "replanned":
-        print("🔄 Path replanned due to obstacle.")
         start_pos = await controller.get_position()
-        path_in_meters = await plan_path(start_pos, goal_pos, robot_name)
-        if not path_in_meters:
-            await motion.stop()
-            return "FAILED"
-
-        executor = PathExecutor(sim, controller.robot, controller.wheels, robot_name)
-
-        replanning_result = await executor.follow_path(path_in_meters)
-
-        if replanning_result == "DONE":
-            print("✅ Path completed successfully after replanning.")
-            await motion.stop()
-            return "DONE"
-        else:
-            print("❌ Path following failed after replanning.")
-            await motion.stop()
-            return "FAILED"
-
-    if result == "DONE":
+        outcome = await excute(sim, start_pos, robot_name, goal_pos)
+        if outcome in ["DONE","FAILED"]:
+            return outcome
+              
+    elif result == "DONE":
         print("✅ Path completed successfully.")
-    else:
+        await motion.stop()
+        print(f"🏁 {robot_name} finished at {time.time()}")
+        outcome = "DONE"
+        return outcome
+    
+    elif result == "FAILED":
         print("❌ Path following failed.")
-
-    await motion.stop()
-    print(f"🏁 {robot_name} finished at {time.time()}")
-    return result
+        await motion.stop()
+        print(f"🏁 {robot_name} finished at {time.time()}")
+        outcome = "FAILED"
+        return outcome

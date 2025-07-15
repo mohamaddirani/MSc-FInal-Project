@@ -35,7 +35,7 @@ class RobotMotion:
         fr_vel = vy - vx
         rl_vel = -vy + vx
         rr_vel = vy + vx
-        print(f"vx {vx}, vy {vy}, fl_vel {fl_vel}, fr_vel {fr_vel}, rl_vel{rl_vel}, rr_vel {rr_vel}")
+        #print(f"vx {vx}, vy {vy}, fl_vel {fl_vel}, fr_vel {fr_vel}, rl_vel{rl_vel}, rr_vel {rr_vel}")
         scale = 1 / WHEEL_RADIUS
         
         await self.sim.setJointTargetVelocity(self.wheels["fl"], fl_vel * scale)
