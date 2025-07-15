@@ -10,6 +10,9 @@ from sim_app.plotter import plot_astar_path, plot_sensor_data, plot_executed_pat
 from sim_app.robot_controller import OmniRobotController
 from time import time
 import time
+import asyncio
+
+
 
 async def wait_for_any_robot_goal():
     print("⏳ Waiting for any robot goal from LLM...")
@@ -57,7 +60,7 @@ async def get_robot_position(sim, robot_name):
 
 
 async def run():
-        
+    
     # Clear any previously saved goal
     if os.path.exists("shared_goal.json"):
         print("🧹 Clearing previous shared goal...")
@@ -87,7 +90,7 @@ async def run():
                     start_pos = await get_robot_position(sim, robot_name)
                     task = asyncio.create_task(excute(sim, start_pos, robot_name, goal))
                     active_tasks[robot_name] = task
-
+                    
             # Check and handle completed tasks
             done_robots = []
             for robot_name, task in active_tasks.items():
@@ -103,7 +106,7 @@ async def run():
 
             # Wait for more goals if none are active
             if all(goal is None for goal in shared.robot_goal.values()):
-                print("🕓 All goals completed. Waiting for new goal...")
+                print("🕓 Waiting for new goal...")
                 await wait_for_any_robot_goal()
 
             await asyncio.sleep(0.1)

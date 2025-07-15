@@ -40,98 +40,68 @@ class PathExecutor:
             Updates the 'cleared' and 'Failed' flags based on the outcome.
     """
 
-    def __init__(self, sim, robot, wheels, robot_name):
+    def __init__(self, sim, robot, wheels, robot_ID):
         self.sim = sim
         self.motion = RobotMotion(sim, wheels)
         self.robot = robot
-        self.robot_name = robot_name  # <- Add this
-        self.cleared = "False"
-        self.Failed = "False"
+        self.ID = robot_ID
 
     async def get_position(self):
-        pos = await self.sim.getObjectPosition(self.robot, -1)
+        pos = await self.sim.getObjectPosition(self.ID, -1)
         return pos[:2]
+    
+    async def reset_orientation(self):
+        await self.sim.setObjectOrientation(self.ID, -1, [0, 0, 0])
 
     async def follow_path(self, path):
-        i = 0
-        robot_name = self.robot_name  # use instance variable instead of shared
-
-
-        for goal in path[1:]:
-            #print(f"path: {path}")
-            shared.planned_path.append(goal)
+        for waypoint in path[1:]:
+            shared.planned_path.append(waypoint)
             while True:
-                i += 1
-                print(f"Moving try: {i}")
-                print(f"🔁 About to move to goal: {goal}")
-                
-                result = await self.move_to_goal(goal)
-                print(f"✅ move_to_goal returned: {result}")
-                current = await self.get_position()
-                goal_coords = shared.robot_goal[self.robot_name]
-                coordinates_for_goal = (goal_coords[0] - current[0], goal_coords[1] - current[1])
-                print(f"Result of move_to_goal: {result}")
-                if result == "replanned" or result == "FAILED" or result == "DONE":
-                    print(f"🚨 follow_path(): exiting loop with result: {result}")
-                    await asyncio.sleep(0.1)
-                    return "replanned" if result == "replanned" else "FAILED" if result == "FAILED" else "DONE"
-                elif result == "MOVING":
-                    if i >= len(path) and (abs(coordinates_for_goal[0]) > goal_error_threshold or abs(coordinates_for_goal[1]) > goal_error_threshold):
-                        print("Reached the end of the path.")
-                        return "FAILED"
-                    await asyncio.sleep(0.1)
-                    break
-                
-        print("✅ Completed all waypoints successfully.")
+                await self.reset_orientation()
+                result = await self.move_to_goal(waypoint)
+                if result is not None:
+                    if result == "MOVING":
+                        break
+                    else: 
+                        return result
         return "DONE"
 
 
-    async def move_to_goal(self, goal):
-        robot_name = self.robot_name
+    async def move_to_goal(self, waypoint):
+        Robot = self.robot
+        await self.reset_orientation()
         current = await self.get_position()
         shared.executed_path.append(current)
-        dx = goal[0] - current[0]
-        dy = goal[1] - current[1]
+        dx = waypoint[0] - current[0]
+        dy = waypoint[1] - current[1]
         dist = math.hypot(dx, dy)
-        goal_coords = shared.robot_goal[self.robot_name]
+        goal_coords = shared.robot_goal[Robot]
         coordinates_for_goal = (goal_coords[0] - current[0], goal_coords[1] - current[1])
         
         dx = 0 if abs(dx) < goal_error_threshold else dx
         dy = 0 if abs(dy) < goal_error_threshold else dy
-        print(f"Moving to goal: {goal}, current position: {current}, dx: {dx}, dy: {dy}, dist: {dist}")
 
-        if abs(coordinates_for_goal[0]) < goal_error_threshold and abs(coordinates_for_goal[1]) < goal_error_threshold:
-            print(f"✅ Goal reached at coordinates: {coordinates_for_goal}")
-            vx = vy = 0
-            return "DONE"
-        elif abs(dy) < goal_error_threshold:
-            print(f"dx: {dx}, dy: {dy} based on abs(dy) < goal_error_threshold")
-            await asyncio.sleep(0.1)
+        if abs(dy) < goal_error_threshold and abs(dx) < goal_error_threshold:
+            return "MOVING"
+        elif abs(dy) < goal_error_threshold: #Move only on X
             vx = SPEED * (dx / dist)
             vy = 0
             await self.motion.set_velocity(vx, vy)
-        elif abs(dx) < goal_error_threshold:
-            print(f"dx: {dx}, dy: {dy} based on abs(dx) < goal_error_threshold")
-            await asyncio.sleep(0.1)
+        elif abs(dx) < goal_error_threshold: #Move only on Y
             vx = 0
             vy = SPEED * (dy / dist)
             await self.motion.set_velocity(vx, vy)
-        else:
-            print(f"both dx: {dx}, dy: {dy} are significant")
+        else: #Both dx & dy are significant
+            print(f"")
             vx = SPEED * (dx / dist)
             vy = SPEED * (dy / dist)
             await self.motion.set_velocity(vx, vy)
-        back_dist = left_dist = front_dist = right_dist = float('inf')
-        print(f"self.robot: {self.robot}, dx: {dx}, dy: {dy}, vx: {vx}, vy: {vy}")
-        if self.robot == 64:
-            Robot = "Rob0"
-        elif self.robot == 105:
-            Robot = "Rob1"
+
         s01 = await fetch_sensor_data(self.sim, f"{Robot}_S300_sensor1")
         s02 = await fetch_sensor_data(self.sim, f"{Robot}_S300_sensor2")
         s11 = await fetch_sensor_data(self.sim, f"{Robot}_S3001_sensor1")
         s12 = await fetch_sensor_data(self.sim, f"{Robot}_S3001_sensor2")
-        print(f"Sensor data fetched for {Robot}:\ns01={s01}\ns02={s02}\ns11={s11}\ns12={s12}")
+
         if s01 is not None:
             back_x, back_y, back_dist = s01
         if s02 is not None:
@@ -172,83 +142,65 @@ class PathExecutor:
             elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "Free":
                 direction = [obstacles[0], "Free"] 
 
-
         elif abs(vy) < 0.05 or abs(vx) < 0.05:
             if abs(vy) < 0.05:
                 if obstacles[0] == "right" and dx < 0:
                     direction = [obstacles[0], "Free"]  # Y direction
                 elif obstacles[0] == "left" and dx > 0:
                     direction = [obstacles[0], "Free"]  # Y direction
+                if abs(coordinates_for_goal[0]) < goal_error_threshold:
+                    print(abs(coordinates_for_goal[0] - current[0]))
+                    direction[1] = obstacles[1]
             if abs(vx) < 0.05:
                 if obstacles[1] == "front" and dy < 0:
                     direction = ["Free" , obstacles[1]]  # Y direction
                 elif obstacles[1] == "back" and dy > 0:
                     direction = ["Free" , obstacles[1]]  # Y direction
-        print(f"direction : {direction}")
+                if abs(coordinates_for_goal[1]) < goal_error_threshold:
+                    direction[0] = obstacles[0]
 
         alignment = await self.check_alignment(obstacles, coordinates_for_goal)
-        print(f"alignment: {alignment}")
+
         if (vx == 0 and vy == 0) or direction != ["Free","Free"]:
-            print("entered")
             if not is_path_clear(direction[0] , Robot) and not is_path_clear(direction[1] , Robot):
                 print(f"🚧 Obstacle detected in both directions: {direction[0]} and {direction[1]}.")
                 await self.motion.stop()
                 return "FAILED"
             elif alignment == "X-AXIS ALIGNED" or alignment == "Y-AXIS ALIGNED":
-                print(f"✅ Robot is {alignment} at coordinates: {coordinates_for_goal}")
-                await self.motion.stop() 
+                await self.motion.stop()
                 print(f"‼️ Returning FAILED because robot is aligned: {alignment}")
                 return "FAILED"
-            elif direction != ["Free" ,"Free"]:
-                if direction[0] != "Free":
-                    await asyncio.sleep(0.1)
-                    await self.motion.stop()
-                    await self.handle_obstacle(direction[0], dx, dy)
-                    if self.Failed == "True":
-                        #print("🔁 Replanning complete. Resuming original goal.")
-                        return "FAILED"  # Continue main loop after obstacle is cleared
-                    elif self.cleared == "True":
-                        print("🔁 Replanning complete. Resuming original goal.")
-                        return "replanned"
-                elif direction[1] != "Free":
-                    await asyncio.sleep(0.1)
-                    await self.motion.stop()
-                    await self.handle_obstacle(direction[1], dx, dy)
-                    if self.Failed == "True":
-                        #print("🔁 Replanning complete. Resuming original goal.")
-                        return "FAILED"  # Continue main loop after obstacle is cleared
-                    elif self.cleared == "True":
-                        print("🔁 Replanning complete. Resuming original goal.")
-                        return "replanned"
-                
-        # Compute wheel velocities
-        return "MOVING"  # Continue moving towards goal
-
+            else:
+                i = 0 if direction[0] != "Free" else 1
+                await self.motion.stop()
+                handle = await self.handle_obstacle(direction[i], dx, dy)
+                if handle == "CLEARED":
+                    print("🔁 Replanning complete. Resuming original goal.")
+                    return "replanned"
+                elif handle is not None:
+                    return handle
+                    
+        if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
+            return "MOVING" #reached desired waypoint       
+            
     async def check_alignment(self, direction, coordinates_for_goal):
 
-            print(f"Checking alignment for direction: {direction}, coordinates_for_goal: {coordinates_for_goal}")
-
+            #print(f"Checking alignment for direction: {direction}, coordinates_for_goal: {coordinates_for_goal}")
             if direction[1] in ["front", "back"] and abs(coordinates_for_goal[0]) < goal_error_threshold:
                 if direction[1] == "front" and coordinates_for_goal[1] > 0:
                     return "X-AXIS ALIGNED"
                 elif direction[1] == "back" and coordinates_for_goal[1] < 0:
                     return "X-AXIS ALIGNED"
-                else:
-                    return None
-                
+            
             elif direction[0] in ["left", "right"] and abs(coordinates_for_goal[1]) < goal_error_threshold:
+                print(f"enterd")
                 if direction[0] == "left" and coordinates_for_goal[0] > 0:
                     return "Y-AXIS ALIGNED"
                 elif direction[0] == "right" and coordinates_for_goal[0] < 0:
                     return "Y-AXIS ALIGNED"
-                else:
-                    return None
-            else:
-                return None
 
     async def handle_obstacle(self, direction, dx, dy):
-        self.cleared = "False"
-        Robot = self.robot_name
+        Robot = self.robot
         current_pos = await self.get_position()
         robot_goal = shared.robot_goal[Robot]
 
@@ -257,24 +209,14 @@ class PathExecutor:
         elif direction in ["front", "back"]:
             temp_goal = (robot_goal[0], current_pos[1])
         else:
-            temp_goal = current_pos  # fallback
+            temp_goal = current_pos
 
-        a = 0
-        while a < 25:
+        while True:
+            await self.reset_orientation()
             new_direction = check_sensors_for_obstacle(dx, dy, Robot)
-            new_current_pos = await self.get_position()
-            new_coordinates_for_goal = [
-                robot_goal[0] - new_current_pos[0],
-                robot_goal[1] - new_current_pos[1]
-            ]
-
-            if abs(new_coordinates_for_goal[0]) <= 0.08 or abs(new_coordinates_for_goal[1]) <= 0.08:
-                self.Failed = "True"
-                return "FAILED"
-            elif new_direction[0] != direction and new_direction[1] != direction:
-                self.cleared = "True"
-                break
-
-            await self.move_to_goal(temp_goal)
+            if new_direction[0] != direction and new_direction[1] != direction:
+                return "CLEARED"
+            move = await self.move_to_goal(temp_goal)
+            if move is not None:
+                return move
             await asyncio.sleep(0.01)
-            a += 1

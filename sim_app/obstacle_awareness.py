@@ -80,6 +80,5 @@ def check_sensors_for_obstacle(dx, dy, robot_name):
         x_direction = 'right'
     else:
         x_direction = "Free"
-
-    print(f"🚨 [{robot_name}] Sensor obstacle check: {obstacles} | X dir: {x_direction}, Y dir: {y_direction}")
+        
     return x_direction, y_direction
