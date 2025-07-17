@@ -10,6 +10,8 @@ from sim_app.astar import AStar
 import sim_app.robot_motion as OmniRobotMotion
 from time import time
 import time
+
+
 async def plan_path(start_pos, goal_pos, robot_name):
     """
     Plan an A* path from start_pos to goal_pos in meters.

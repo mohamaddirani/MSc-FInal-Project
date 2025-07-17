@@ -134,7 +134,7 @@ async def main_loop(sim):
     #     except KeyboardInterrupt:
     #         print("\n👋 Stopping LLM listener.")
     #         break
-    robot = "Robot0"
+    robot = "Robot1"
     coords =[-6.24974 , +6.36916]
     await send_to_robot(sim, robot, coords)
 
