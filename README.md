@@ -14,7 +14,6 @@ This project showcases:
 
 ## 📁 Directory Structure
 
-```
 MSc-FInal-Project/
 ├── main.py                # Entry point for robot coordination and simulation
 ├── a_star.py              # A* path planning algorithm implementation
@@ -26,7 +25,6 @@ MSc-FInal-Project/
 ├── robot_awareness.py     # Cooperative obstacle handling between robots
 ├── check_nearest_robot.py # Dynamic path clearance for blocked robots
 └── README.md              # Project documentation
-```
 
 ## ✅ Features
 
