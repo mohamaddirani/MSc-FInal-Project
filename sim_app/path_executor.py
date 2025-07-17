@@ -1,16 +1,16 @@
 # sim_app/path_executor.py
-
 import asyncio
 import math
 from sim_app.obstacle_awareness import is_path_clear, check_sensors_for_obstacle
 from sim_app.sensor_fetch import fetch_sensor_data
 from sim_app import shared
+from sim_app.robots_awareness import is_obstacle_a_robot, request_robot_to_clear
 from sim_app.robot_motion import RobotMotion
-from sim_app.robot_motion import SPEED
 
 goal_error_threshold = 0.1
 side_obstacle_threshold = 1.2
 vertical_obstacle_threshold = 0.74
+speed = 0.1
 
 class PathExecutor:
     """
@@ -42,7 +42,7 @@ class PathExecutor:
 
     def __init__(self, sim, robot, wheels, robot_ID):
         self.sim = sim
-        self.motion = RobotMotion(sim, wheels)
+        self.wheels = wheels
         self.robot = robot
         self.ID = robot_ID
 
@@ -53,8 +53,9 @@ class PathExecutor:
     async def reset_orientation(self):
         await self.sim.setObjectOrientation(self.ID, -1, [0, 0, 0])
 
+
     async def follow_path(self, path):
-        for waypoint in path[1:]:
+        for waypoint in path[2:]:
             shared.planned_path.append(waypoint)
             while True:
                 await self.reset_orientation()
@@ -62,127 +63,149 @@ class PathExecutor:
                 if result is not None:
                     if result == "MOVING":
                         break
-                    else: 
+                    else:
                         return result
         return "DONE"
 
-
     async def move_to_goal(self, waypoint):
-        Robot = self.robot
-        await self.reset_orientation()
-        current = await self.get_position()
-        shared.executed_path.append(current)
-        dx = waypoint[0] - current[0]
-        dy = waypoint[1] - current[1]
-        dist = math.hypot(dx, dy)
-        goal_coords = shared.robot_goal[Robot]
-        coordinates_for_goal = (goal_coords[0] - current[0], goal_coords[1] - current[1])
-        
-        dx = 0 if abs(dx) < goal_error_threshold else dx
-        dy = 0 if abs(dy) < goal_error_threshold else dy
-
-        if abs(dy) < goal_error_threshold and abs(dx) < goal_error_threshold:
-            return "MOVING"
-        elif abs(dy) < goal_error_threshold: #Move only on X
-            vx = SPEED * (dx / dist)
-            vy = 0
-            await self.motion.set_velocity(vx, vy)
-        elif abs(dx) < goal_error_threshold: #Move only on Y
-            vx = 0
-            vy = SPEED * (dy / dist)
-            await self.motion.set_velocity(vx, vy)
-        else: #Both dx & dy are significant
-            print(f"")
-            vx = SPEED * (dx / dist)
-            vy = SPEED * (dy / dist)
-            await self.motion.set_velocity(vx, vy)
-
-        s01 = await fetch_sensor_data(self.sim, f"{Robot}_S300_sensor1")
-        s02 = await fetch_sensor_data(self.sim, f"{Robot}_S300_sensor2")
-        s11 = await fetch_sensor_data(self.sim, f"{Robot}_S3001_sensor1")
-        s12 = await fetch_sensor_data(self.sim, f"{Robot}_S3001_sensor2")
-
-        if s01 is not None:
-            back_x, back_y, back_dist = s01
-        if s02 is not None:
-            left_x, left_y, left_dist = s02
-        if s11 is not None:
-            front_x, front_y, front_dist = s11
-        if s12 is not None:
-            right_x, right_y, right_dist = s12
-        
-        obstacles = check_sensors_for_obstacle(dx, dy, Robot)
-        direction = ["Free","Free"]
-
-        if abs(vx) > 0.05 and abs(vy) > 0.05:
-            if obstacles[0] == "left" and dx > 0 and obstacles[1] == "back" and dy > 0:
-                direction = obstacles  # X direction
-            elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "back" and dy > 0:
-                direction = obstacles  # X direction
-            elif obstacles[0] == "left" and dx > 0 and obstacles[1] == "front" and dy < 0:
-                direction = obstacles
-            elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "front" and dy < 0:
-                direction = obstacles
-
-            elif obstacles[0] == "left" and dx < 0 and obstacles[1] == "back" and dy > 0:
-                direction = ["Free", obstacles[1]]  # X direction
-            elif obstacles[0] == "right" and dx > 0 and obstacles[1] == "back" and dy > 0:
-                direction = ["Free", obstacles[1]]  # X direction
-            elif obstacles[0] == "left" and dx > 0 and obstacles[1] == "front" and dy > 0:
-                direction = [obstacles[0], "Free"]
-            elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "front" and dy > 0:
-                direction = [obstacles[0], "Free"] 
-
-            elif obstacles[0] == "Free" and obstacles[1] == "back" and dy > 0:
-                direction = ["Free", obstacles[1]]  # X direction
-            elif obstacles[0] == "Free" and obstacles[1] == "back" and dy > 0:
-                direction = ["Free", obstacles[1]]  # X direction
-            elif obstacles[0] == "left" and dx > 0 and obstacles[1] == "Free":
-                direction = [obstacles[0], "Free"]
-            elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "Free":
-                direction = [obstacles[0], "Free"] 
-
-        elif abs(vy) < 0.05 or abs(vx) < 0.05:
-            if abs(vy) < 0.05:
-                if obstacles[0] == "right" and dx < 0:
-                    direction = [obstacles[0], "Free"]  # Y direction
-                elif obstacles[0] == "left" and dx > 0:
-                    direction = [obstacles[0], "Free"]  # Y direction
-                if abs(coordinates_for_goal[0]) < goal_error_threshold:
-                    print(abs(coordinates_for_goal[0] - current[0]))
-                    direction[1] = obstacles[1]
-            if abs(vx) < 0.05:
-                if obstacles[1] == "front" and dy < 0:
-                    direction = ["Free" , obstacles[1]]  # Y direction
-                elif obstacles[1] == "back" and dy > 0:
-                    direction = ["Free" , obstacles[1]]  # Y direction
-                if abs(coordinates_for_goal[1]) < goal_error_threshold:
-                    direction[0] = obstacles[0]
-
-        alignment = await self.check_alignment(obstacles, coordinates_for_goal)
-
-        if (vx == 0 and vy == 0) or direction != ["Free","Free"]:
-            if not is_path_clear(direction[0] , Robot) and not is_path_clear(direction[1] , Robot):
-                print(f"🚧 Obstacle detected in both directions: {direction[0]} and {direction[1]}.")
-                await self.motion.stop()
-                return "FAILED"
-            elif alignment == "X-AXIS ALIGNED" or alignment == "Y-AXIS ALIGNED":
-                await self.motion.stop()
-                print(f"‼️ Returning FAILED because robot is aligned: {alignment}")
-                return "FAILED"
-            else:
-                i = 0 if direction[0] != "Free" else 1
-                await self.motion.stop()
-                handle = await self.handle_obstacle(direction[i], dx, dy)
-                if handle == "CLEARED":
-                    print("🔁 Replanning complete. Resuming original goal.")
-                    return "replanned"
-                elif handle is not None:
-                    return handle
-                    
-        if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
-            return "MOVING" #reached desired waypoint       
+            Robot = self.robot
+            motion = RobotMotion(self.sim, self.wheels)
+            await self.reset_orientation()
+            current = await self.get_position()
+            shared.executed_path.append(current)
+            dx = waypoint[0] - current[0]
+            dy = waypoint[1] - current[1]
+            dist = math.hypot(dx, dy)
+            goal_coords = shared.robot_goal[Robot]
+            coordinates_for_goal = (goal_coords[0] - current[0], goal_coords[1] - current[1])
             
+            dx = 0 if abs(dx) < goal_error_threshold else dx
+            dy = 0 if abs(dy) < goal_error_threshold else dy
+
+            if abs(dy) < goal_error_threshold and abs(dx) < goal_error_threshold:
+                return "MOVING"
+            elif abs(dy) < goal_error_threshold: #Move only on X
+                vx = speed * (dx / dist)
+                vy = 0
+                await motion.set_velocity(vx, vy)
+            elif abs(dx) < goal_error_threshold: #Move only on Y
+                vx = 0
+                vy = speed * (dy / dist)
+                await motion.set_velocity(vx, vy)
+            else: #Both dx & dy are significant
+                print(f"")
+                vx = speed * (dx / dist)
+                vy = speed * (dy / dist)
+                await motion.set_velocity(vx, vy)
+
+            s01 = await fetch_sensor_data(self.sim, f"{Robot}_S300_sensor1")
+            s02 = await fetch_sensor_data(self.sim, f"{Robot}_S300_sensor2")
+            s11 = await fetch_sensor_data(self.sim, f"{Robot}_S3001_sensor1")
+            s12 = await fetch_sensor_data(self.sim, f"{Robot}_S3001_sensor2")
+            back_x, back_y, left_x, left_y, front_x, front_y, right_x, right_y = 0, 0, 0, 0, 0, 0, 0, 0
+            if s01 is not None:
+                back_x, back_y, back_dist = s01
+            if s02 is not None:
+                left_x, left_y, left_dist = s02
+            if s11 is not None:
+                front_x, front_y, front_dist = s11
+            if s12 is not None:
+                right_x, right_y, right_dist = s12
+
+            sensor_map = {
+                            "front": (front_x, front_y),
+                            "back": (back_x, back_y),
+                            "left": (left_x, left_y),
+                            "right": (right_x, right_y),
+                        }
+
+            obstacles = check_sensors_for_obstacle(dx, dy, Robot)
+            direction = ["Free","Free"]
+
+            if abs(vx) > 0.05 and abs(vy) > 0.05:
+                if obstacles[0] == "left" and dx > 0 and obstacles[1] == "back" and dy > 0:
+                    direction = obstacles  # X direction
+                elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "back" and dy > 0:
+                    direction = obstacles  # X direction
+                elif obstacles[0] == "left" and dx > 0 and obstacles[1] == "front" and dy < 0:
+                    direction = obstacles
+                elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "front" and dy < 0:
+                    direction = obstacles
+
+                elif obstacles[0] == "left" and dx < 0 and obstacles[1] == "back" and dy > 0:
+                    direction = ["Free", obstacles[1]]  # X direction
+                elif obstacles[0] == "right" and dx > 0 and obstacles[1] == "back" and dy > 0:
+                    direction = ["Free", obstacles[1]]  # X direction
+                elif obstacles[0] == "left" and dx > 0 and obstacles[1] == "front" and dy > 0:
+                    direction = [obstacles[0], "Free"]
+                elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "front" and dy > 0:
+                    direction = [obstacles[0], "Free"] 
+
+                elif obstacles[0] == "Free" and obstacles[1] == "back" and dy > 0:
+                    direction = ["Free", obstacles[1]]  # X direction
+                elif obstacles[0] == "Free" and obstacles[1] == "back" and dy > 0:
+                    direction = ["Free", obstacles[1]]  # X direction
+                elif obstacles[0] == "left" and dx > 0 and obstacles[1] == "Free":
+                    direction = [obstacles[0], "Free"]
+                elif obstacles[0] == "right" and dx < 0 and obstacles[1] == "Free":
+                    direction = [obstacles[0], "Free"] 
+
+            elif abs(vy) < 0.05 or abs(vx) < 0.05:
+                if abs(vy) < 0.05:
+                    if obstacles[0] == "right" and dx < 0:
+                        direction = [obstacles[0], "Free"]  # Y direction
+                    elif obstacles[0] == "left" and dx > 0:
+                        direction = [obstacles[0], "Free"]  # Y direction
+                    if abs(coordinates_for_goal[0]) < goal_error_threshold:
+                        print(abs(coordinates_for_goal[0] - current[0]))
+                        direction[1] = obstacles[1]
+                if abs(vx) < 0.05:
+                    if obstacles[1] == "front" and dy < 0:
+                        direction = ["Free" , obstacles[1]]  # Y direction
+                    elif obstacles[1] == "back" and dy > 0:
+                        direction = ["Free" , obstacles[1]]  # Y direction
+                    if abs(coordinates_for_goal[1]) < goal_error_threshold:
+                        direction[0] = obstacles[0]
+
+            alignment = await self.check_alignment(obstacles, coordinates_for_goal)
+            if direction[0] != "Free":
+                obs = await is_obstacle_a_robot(self.sim, direction[0], sensor_map[direction[0]][0], sensor_map[direction[0]][1], Robot, 0.6)
+                direc = direction[0]
+            elif direction[1] != "Free":
+                obs = await is_obstacle_a_robot(self.sim, direction[1], sensor_map[direction[1]][0], sensor_map[direction[1]][1], Robot, 0.6)
+                direc = direction[1]
+            else:
+                obs = None
+
+            if (vx == 0 and vy == 0) or direction != ["Free","Free"]:
+                # print(f"direction = : {direction}")
+                if not is_path_clear(direction[0] , Robot) and not is_path_clear(direction[1] , Robot):
+                    print(f"🚧 Obstacle detected in both directions: {direction[0]} and {direction[1]}.")
+                    await motion.stop()
+                    return "FAILED"
+                elif alignment == "X-AXIS ALIGNED" or alignment == "Y-AXIS ALIGNED":
+                    await motion.stop()
+                    print(f"‼️ Returning FAILED because robot is aligned: {alignment}")
+                    return "FAILED"
+                elif obs is not None:
+                    blocking_robot_ID = obs[0]
+                    closest_robot = obs[1]
+                    await motion.stop()
+                    await request_robot_to_clear(self.sim, blocking_robot_ID, coordinates_for_goal, Robot, closest_robot, direc)
+                    return "MOVING"
+                else:
+                    i = 0 if direction[0] != "Free" else 1
+                    await motion.stop()
+                    handle = await self.handle_obstacle(Robot, direction[i], dx, dy)
+                    if handle == "CLEARED":
+                        print("🔁 Replanning complete. Resuming original goal.")
+                        return "replanned"
+                    elif handle is not None:
+                        return handle
+                        
+            if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
+                return "MOVING" #reached desired waypoint       
+                
     async def check_alignment(self, direction, coordinates_for_goal):
 
             #print(f"Checking alignment for direction: {direction}, coordinates_for_goal: {coordinates_for_goal}")
@@ -193,14 +216,13 @@ class PathExecutor:
                     return "X-AXIS ALIGNED"
             
             elif direction[0] in ["left", "right"] and abs(coordinates_for_goal[1]) < goal_error_threshold:
-                print(f"enterd")
                 if direction[0] == "left" and coordinates_for_goal[0] > 0:
                     return "Y-AXIS ALIGNED"
                 elif direction[0] == "right" and coordinates_for_goal[0] < 0:
                     return "Y-AXIS ALIGNED"
 
-    async def handle_obstacle(self, direction, dx, dy):
-        Robot = self.robot
+
+    async def handle_obstacle(self, Robot, direction, dx, dy):
         current_pos = await self.get_position()
         robot_goal = shared.robot_goal[Robot]
 
@@ -219,4 +241,4 @@ class PathExecutor:
             move = await self.move_to_goal(temp_goal)
             if move is not None:
                 return move
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.01)   

@@ -21,12 +21,15 @@ all_sensor_data = defaultdict(list)
 latest_astar_path = []
 executed_path = [] 
 planned_path = []
-
-# Shared robot goal 
-#robot_goal = [] #(-6.24974, +6.36916)
 robot_start = (0.0, 0.0)
 
-#adding multiple goals for different robots
+# Dictionary to store current goal of each robot
+robot_positions = {
+    "Rob0": (0.0, 0.0),
+    "Rob1": (0.0, 0.0),
+    "Rob2": (0.0, 0.0),
+}
+
 # Dictionary to store current goal of each robot
 robot_goal = {
     "Rob0": None,

@@ -24,7 +24,6 @@ class RobotMotion:
         self.wheels = wheels
 
     async def stop(self):
-        print("🛑 Stopping robot.")
         for joint in self.wheels.values():
             await self.sim.setJointTargetVelocity(joint, 0)
 
