@@ -1,5 +1,0 @@
-<map id="map_builder.build_occupancy_grid" name="map_builder.build_occupancy_grid">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,226,40"/>
-<area shape="rect" id="Node000002" href="$namespacemap__builder.html#a0eabac541063a12a54a09cb26f439fc4" title=" " alt="" coords="274,5,408,48"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,24,258,24,258,29,226,29"/>
-</map>

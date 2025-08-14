@@ -1,9 +1,0 @@
-<map id="pController.stepSimulation" name="pController.stepSimulation">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,180,57"/>
-<area shape="rect" id="Node000002" href="$namespacesim.html#a9f1ec2c9698d5a465b9150198ddabdbc" title=" " alt="" coords="237,5,408,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,32,222,27,222,32,180,37"/>
-<area shape="rect" id="Node000004" href="$namespacesim.html#ac545906994ad1c383db601fc11fe12d4" title=" " alt="" coords="228,56,418,83"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,51,212,55,212,60,180,56"/>
-<area shape="rect" id="Node000003" href="$namespacesim.html#a76ec8a54022988863919991d11798131" title=" " alt="" coords="466,5,626,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="409,16,450,16,450,21,409,21"/>
-</map>

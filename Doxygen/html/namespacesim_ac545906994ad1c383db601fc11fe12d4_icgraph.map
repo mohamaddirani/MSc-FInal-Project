@@ -1,9 +1,0 @@
-<map id="sim.simxSynchronousTrigger" name="sim.simxSynchronousTrigger">
-<area shape="rect" id="Node000001" title=" " alt="" coords="507,35,697,61"/>
-<area shape="rect" id="Node000002" href="$namespacep_controller.html#a880f89696ca9c55a3c5bbddeadc99d4e" title=" " alt="" coords="253,5,427,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="491,38,427,31,428,26,492,33"/>
-<area shape="rect" id="Node000004" href="$namespacesynchronous_image_transmission.html#a8c349c01fbe52c939f63743015a34429" title=" " alt="" coords="221,56,459,99"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="491,63,460,67,459,61,491,58"/>
-<area shape="rect" id="Node000003" href="$namespacep_controller.html#a912de6990c0f25cf0a24ace0f7f1e910" title=" " alt="" coords="5,5,173,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="237,21,173,21,173,16,237,16"/>
-</map>

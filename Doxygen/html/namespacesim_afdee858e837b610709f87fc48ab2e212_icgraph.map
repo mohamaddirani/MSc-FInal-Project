@@ -1,7 +1,0 @@
-<map id="sim.simxGetJointPosition" name="sim.simxGetJointPosition">
-<area shape="rect" id="Node000001" title=" " alt="" coords="446,13,616,40"/>
-<area shape="rect" id="Node000002" href="$namespacep_controller.html#a350cc15d944ecf1d98a9b32f157520a1" title=" " alt="" coords="221,5,398,48"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="431,29,399,29,399,24,431,24"/>
-<area shape="rect" id="Node000003" href="$namespacep_controller.html#a912de6990c0f25cf0a24ace0f7f1e910" title=" " alt="" coords="5,13,173,40"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="205,29,173,29,173,24,205,24"/>
-</map>

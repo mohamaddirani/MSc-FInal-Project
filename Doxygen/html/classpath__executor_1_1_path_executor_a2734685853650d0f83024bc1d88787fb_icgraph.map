@@ -1,8 +1,0 @@
-<map id="path_executor.PathExecutor.handle_obstacle" name="path_executor.PathExecutor.handle_obstacle">
-<area shape="rect" id="Node000001" title=" " alt="" coords="580,5,808,48"/>
-<area shape="rect" id="Node000002" href="$classpath__executor_1_1_path_executor.html#a423857e2c62f6f9573697b6673e56ce7" title=" " alt="" coords="310,5,532,48"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="564,38,532,38,532,33,564,33"/>
-<area shape="poly" id="edge3_Node000002_Node000001" title=" " alt="" coords="547,15,580,15,580,20,547,20"/>
-<area shape="rect" id="Node000003" href="$classpath__executor_1_1_path_executor.html#a135c9ff26c8cdd09fd9c15d3b30fe8b1" title=" " alt="" coords="5,13,262,40"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="294,29,262,29,262,24,294,24"/>
-</map>
