@@ -1,120 +1,135 @@
-#sim_app/check_nearest_robot.py
-import asyncio
+# sim_app/check_nearest_robot.py
 import math
+import numpy as np
+from time import time
+
 from sim_app.robot_controller import OmniRobotController
 from sim_app import shared
-from sim_app.astar_env import AStarEnvironment , grid_to_meters, meters_to_grid
+from sim_app.astar_env import AStarEnvironment, grid_to_meters, meters_to_grid
 from sim_app.path_executor import PathExecutor
-from sim_app.map_builder import build_occupancy_grid
 from sim_app.astar import AStar
 import sim_app.robot_motion as OmniRobotMotion
-from time import time
-import time
+
+
+ROBOT_IDS = ["Rob0", "Rob1", "Rob2"]
+ID_TO_MODEL = {"Rob0": "Omnirob0", "Rob1": "Omnirob1", "Rob2": "Omnirob2"}
+
+
+def _current_planning_grid() -> np.ndarray:
+    cm = shared.global_costmap
+    return cm.astype(np.float32) if cm is not None and cm.size else \
+           np.zeros((shared.GRID_SIZE, shared.GRID_SIZE), dtype=np.float32)
 
 
 async def plan_path(start_pos, goal_pos, robot_name):
-    """
-    Plan an A* path from start_pos to goal_pos in meters.
-    Returns a list of waypoints in meters if successful, otherwise None.
-    """
-    start_grid = meters_to_grid(start_pos[0], start_pos[1])
-    goal_grid = meters_to_grid(goal_pos[0], goal_pos[1])
-    
+    # Grow the map if needed around start/goal
+    shared.ensure_map_covers([start_pos[0], goal_pos[0]],
+                             [start_pos[1], goal_pos[1]], margin_m=1.0)
+
+    grid = _current_planning_grid()
+    res  = shared.MAP_RESOLUTION
+
+    start_grid = meters_to_grid(start_pos[0], start_pos[1], grid, res)
+    goal_grid  = meters_to_grid(goal_pos[0],  goal_pos[1],  grid, res)
 
     print(f"📌 Planning path: Start Grid {start_grid}, Goal Grid {goal_grid}")
-    grid = build_occupancy_grid(robot_name, grid_size=200, cell_resolution=0.2)  # fresh occupancy grid
-    env = AStarEnvironment(grid, start_grid, goal_grid)
-    path_finder = AStar(env)
-    path = path_finder.search("robot")
+    occ = (shared.global_occupancy > 0).astype(np.float32)
+    env = AStarEnvironment(
+        occ,
+        start_grid,
+        goal_grid,
+        res,
+        block_threshold=0.5,      # 1’s are blocked, 0’s free
+        soft_cost_gain=None
+    )
 
-    if not path:
+    path_g = AStar(env).search("robot")
+    if not path_g:
         print("❌ No path found during planning!")
         return None
 
-    path_in_meters = [grid_to_meters(*p) for p in path]
-    print(f"🚦 A* planned path with {len(path_in_meters)} waypoints.")
-    return path_in_meters
+    path_m = [grid_to_meters(x, y, grid, res) for (x, y) in path_g]
+    print(f"🚦 A* planned path with {len(path_m)} waypoints.")
+    return path_m
+
 
 async def find_available_robot(sim, goal_pos):
     """
-    Selects the nearest available (idle) robot to the given goal_pos.
-    Returns (robot_id, start_position) or (None, None) if no robot is free.
+    Loop over Rob0/Rob1/Rob2, pick the nearest IDLE robot.
+    Returns (robot_id, start_pos) or (None, None).
     """
     candidates = []
 
-    # Setup robot controllers
-    controller0 = OmniRobotController()
-    await controller0.init_handles(sim, robot_name='Omnirob0')
+    for rid in ROBOT_IDS:
+        if shared.robot_status.get(rid) != "idle":
+            continue
 
-    controller1 = OmniRobotController()
-    await controller1.init_handles(sim, robot_name='Omnirob1')
+        model = ID_TO_MODEL[rid]
+        ctrl = OmniRobotController()
+        try:
+            await ctrl.init_handles(sim, robot_name=model)
+        except Exception as e:
+            print(f"⚠️ Skipping {rid} ({model}): {e}")
+            continue
 
-    # Check if Rob0 is idle
-    if shared.robot_status["Rob0"] == "idle":
-        pos0 = await controller0.get_position()
-        dist0 = math.hypot(goal_pos[0] - pos0[0], goal_pos[1] - pos0[1])
-        candidates.append(("Rob0", pos0, dist0))
+        pos = await ctrl.get_position()
+        dist = math.hypot(goal_pos[0] - pos[0], goal_pos[1] - pos[1])
+        candidates.append((rid, pos, dist))
 
-    # Check if Rob1 is idle
-    if shared.robot_status["Rob1"] == "idle":
-        pos1 = await controller1.get_position()
-        dist1 = math.hypot(goal_pos[0] - pos1[0], goal_pos[1] - pos1[1])
-        candidates.append(("Rob1", pos1, dist1))
-
-    # If no idle robots
     if not candidates:
         print("⛔ No available idle robots.")
         return None, None
 
-    # Sort by distance and select nearest
-    selected = sorted(candidates, key=lambda x: x[2])[0]
-    robot_id, start_pos, _ = selected
+    robot_id, start_pos, _ = min(candidates, key=lambda x: x[2])
     print(f"✅ Nearest available robot: {robot_id} at {start_pos}")
     return robot_id, start_pos
 
-async def excute(sim, start_pos, robot_name, goal_pos):
-    # Choose and initialize the correct controller
-    if robot_name == "Rob0":
-        controller = OmniRobotController()
-        await controller.init_handles(sim, robot_name="Omnirob0")
-    elif robot_name == "Rob1":
-        controller = OmniRobotController()
-        await controller.init_handles(sim, robot_name="Omnirob1")
-    else:
+
+async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
+    """
+    Execute a mission for the chosen robot_id ('Rob0'/'Rob1'/'Rob2').
+    """
+    model = ID_TO_MODEL.get(robot_name)
+    if not model:
         print(f"⚠️ Unknown robot name: {robot_name}")
         return "FAILED"
 
+    controller = OmniRobotController()
+    await controller.init_handles(sim, robot_name=model)
+
     shared.robot_start = start_pos
+    shared.robot_orientation[robot_name] = start_ori
     shared.robot_name = robot_name
+    shared.robot_goal[robot_name] = tuple(goal_pos)
+    shared.robot_status[robot_name] = "busy"
 
     path_in_meters = await plan_path(start_pos, goal_pos, robot_name)
     motion = OmniRobotMotion.RobotMotion(sim, controller.wheels)
 
     if not path_in_meters:
         await motion.stop()
+        shared.robot_status[robot_name] = "idle"
         print("❌ Path planning failed for assigned robot.")
         return "FAILED"
 
     executor = PathExecutor(sim, robot_name, controller.wheels, controller.robot)
-
     result = await executor.follow_path(path_in_meters)
 
     if result == "replanned":
-        start_pos = await controller.get_position()
-        outcome = await excute(sim, start_pos, robot_name, goal_pos)
-        if outcome in ["DONE","FAILED"]:
-            return outcome
-              
-    elif result == "DONE":
+        # Start again from current pose, with updated memory map
+        new_start = await controller.get_position()
+        outcome = await excute(sim, new_start, start_ori, robot_name, goal_pos)
+        return outcome if outcome in ("DONE", "FAILED") else "FAILED"
+
+    if result == "DONE":
         print("✅ Path completed successfully.")
         await motion.stop()
-        print(f"🏁 {robot_name} finished at {time.time()}")
-        outcome = "DONE"
-        return outcome
-    
-    elif result == "FAILED":
-        print("❌ Path following failed.")
-        await motion.stop()
-        print(f"🏁 {robot_name} finished at {time.time()}")
-        outcome = "FAILED"
-        return outcome
+        shared.robot_status[robot_name] = "idle"
+        print(f"🏁 {robot_name} finished at {time()}")
+        return "DONE"
+
+    print("❌ Path following failed.")
+    await motion.stop()
+    shared.robot_status[robot_name] = "idle"
+    print(f"🏁 {robot_name} finished at {time()}")
+    return "FAILED"

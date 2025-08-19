@@ -1,84 +1,99 @@
-# sim_app/obstacle_awareness.py
-from sim_app.shared import latest_data
+import sim_app.shared as shared
+import math
 
+THRESHOLD_M = 1.0  # consider points within this range as "blocking"
+
+def _iter_points(robot_name):
+    # Both combined signals have (x,y,z,dist) in the robot's laser_frame
+    for sig in (f"{robot_name}_S300_combined_data",
+                f"{robot_name}_S3001_combined_data"):
+        for p in shared.latest_data.get(sig, []):
+            yield p
+
+def _direction_of_point(p):
+    x, y, *_rest = p
+    dist = _rest[1] if len(_rest) >= 2 else (x*x + y*y) ** 0.5
+    if dist is None or dist >= THRESHOLD_M:
+        return None
+
+    # robot frame rule: +x left, -x right ; +y back, -y front
+    if abs(x) >= abs(y):
+        return "right" if x < 0 else "left"
+    else:
+        return "back" if y > 0 else "front"
 
 def is_path_clear(direction, robot_name):
-    """
-    direction: 'front', 'back', 'left', or 'right'
-    robot_name: 'Rob0' or 'Rob1'
-    Returns True if no obstacle is detected within the threshold in that direction.
-    """
-    signal_map = {
-        'back': f"{robot_name}_S300_sensor1",
-        'left': f"{robot_name}_S300_sensor2",
-        'front': f"{robot_name}_S3001_sensor1",
-        'right': f"{robot_name}_S3001_sensor2",
-    }
-    
-    signal_name = signal_map.get(direction)
-    if not signal_name or signal_name not in latest_data:
-        return True  # If no data, assume clear
-    elif direction == "Free":
+    # "Free" => clear; specific robot name => NOT clear
+    if direction == "Free":
         return True
-    for pt in latest_data[signal_name]:
-        _, _, _, dist = pt
-        if dist:
+    if isinstance(direction, str) and direction.startswith("Rob"):
+        return False
+    for pt in _iter_points(robot_name):
+        if _direction_of_point(pt) == direction:
             return False
     return True
 
+
 def check_sensors_for_obstacle(dx, dy, robot_name):
     """
-    Checks the robot's sensors for obstacles in four directions and determines blocked movement directions.
-    Args:
-        dx (float): Desired movement in the X direction.
-        dy (float): Desired movement in the Y direction.
-        robot_name (str): The name of the robot, used to construct sensor signal names.
-    Returns:
-        tuple: (x_direction, y_direction)
-            x_direction (str): Indicates if movement in the X direction is blocked ('left', 'right', or 'Free').
-            y_direction (str): Indicates if movement in the Y direction is blocked ('front', 'back', or 'Free').
-    Notes:
-        - Uses global variable `latest_data` to access sensor readings.
-        - Prints a summary of detected obstacles and blocked directions.
+    Returns tuple (x_dir, y_dir)
+    Each can be:
+        - "Free"
+        - "front"/"back"/"left"/"right"
+        - robot name ("Rob1", "Rob2", ...)
     """
-    
-    sensor_directions = [
-        ('back', f"{robot_name}_S300_sensor1"),
-        ('left', f"{robot_name}_S300_sensor2"),
-        ('front', f"{robot_name}_S3001_sensor1"),
-        ('right', f"{robot_name}_S3001_sensor2"),
-    ]
+    seen = {"left": "Free", "right": "Free", "front": "Free", "back": "Free"}
 
-    obstacles = []
+    for pt in _iter_points(robot_name):
+        d = _direction_of_point(pt)
+        if not d:
+            continue
 
-    for direction, signal in sensor_directions:
-        points = latest_data.get(signal, [])
-        detected = None
-        for pt in points:
-            _, _, _, dist = pt
-            if dist:
-                detected = direction
-                break
-        obstacles.append(detected)
+        # convert pt (local laser coords) to world coords
+        rx, ry = shared.robot_positions[robot_name]
+        px, py = rx + pt[0], ry + pt[1]
 
-    # Determine Y direction block
-    if obstacles[0] is not None and obstacles[2] is not None:
-        y_direction = 'front' if dy < 0 else 'back' if dy > 0 else "Free"
-    elif obstacles[0] is not None:
-        y_direction = 'back'
-    elif obstacles[2] is not None:
-        y_direction = 'front'
+        other_robot = is_obstacle_robot(px, py, robot_name)
+        if other_robot:
+            print(f"🤖 {robot_name} sees {other_robot} in {d} direction")
+            seen[d] = other_robot   # overwrite with robot name
+        else:
+            seen[d] = d             # normal obstacle
+
+    # Y direction (front/back):
+    if isinstance(seen["front"], str) and seen["front"].startswith("Rob"):
+        y_dir = seen["front"]
+    elif isinstance(seen["back"], str) and seen["back"].startswith("Rob"):
+        y_dir = seen["back"]
+    elif seen["front"] != "Free" and dy < 0:
+        y_dir = seen["front"]
+    elif seen["back"] != "Free" and dy > 0:
+        y_dir = seen["back"]
     else:
-        y_direction = "Free"
+        y_dir = "Free"
 
-    # Determine X direction block
-    if obstacles[1] is not None and obstacles[3] is not None:
-        x_direction = 'right' if dx < 0 else 'left' if dx > 0 else "Free"
-    elif obstacles[1] is not None:
-        x_direction = 'left'
-    elif obstacles[3] is not None:
-        x_direction = 'right'
+    # X direction (left/right):
+    if isinstance(seen["left"], str) and seen["left"].startswith("Rob"):
+        x_dir = seen["left"]
+    elif isinstance(seen["right"], str) and seen["right"].startswith("Rob"):
+        x_dir = seen["right"]
+    elif seen["left"] != "Free" and dx > 0:
+        x_dir = seen["left"]
+    elif seen["right"] != "Free" and dx < 0:
+        x_dir = seen["right"]
     else:
-        x_direction = "Free"
-        
-    return x_direction, y_direction
+        x_dir = "Free"
+
+    return x_dir, y_dir
+
+def is_obstacle_robot(px, py, active_robot, threshold=0.6):
+    """
+    Check if a detected obstacle point belongs to another robot.
+    """
+    for robot_name, (rx, ry) in shared.robot_positions.items():
+        if robot_name == active_robot:
+            continue
+        dist = math.hypot(px - rx, py - ry)
+        if dist <= threshold:
+            return robot_name
+    return None

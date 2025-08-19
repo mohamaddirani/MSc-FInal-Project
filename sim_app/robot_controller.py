@@ -26,10 +26,15 @@ class OmniRobotController:
         }
         self.robot = await sim.getObject(f'/{robot_name}')
         for joint in self.wheels.values():
-            await sim.setJointForce(joint, 100)
+            await sim.setJointTargetForce(joint, 100)
         self.initialized = True
         print(f"🔧 {robot_name} controller initialized.")
         
     async def get_position(self):
         pos = await self.sim.getObjectPosition(self.robot, -1)
         return pos[:2]
+
+    async def get_orientation(self):
+        ori = await self.sim.getObjectOrientation(self.robot, -1)
+        print(f"Orientation of {self.robot}: {ori}")
+        return ori
