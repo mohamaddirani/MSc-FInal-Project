@@ -8,15 +8,29 @@ import sim_app.shared as shared
 import time
 import asyncio
 from sim_app.check_nearest_robot import find_available_robot
+import os
+from dotenv import load_dotenv
 
-# Initialize OpenAI client
-client = OpenAI(api_key="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")
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Predefined map of destination labels to coordinates
 location_map = {
-    "point a": (1.5, 3.0),
-    "point b": (-2.0, 1.0),
-    "point c": (-6.24974, +6.36916)
+    "Meetings Table": (-1.500, -7.000),
+    "Office Table": (-2.000, 2.000),
+    "Cupboard A": (6.800, 1.000),
+    "Cupboard B": (3.800, 1.000),
+    "Cupboard C": (3.800, -3.000),
+    "Cupboard D": (6.800, -3.000),
+    "Meetings Rack": (-4.500, -4.000),
+    "Office Rack": (-4.500, 0.000),
+    "Rack A": (8.000, -5.000),
+    "Rack B": (5.000, -5.000),
+    "Rack C": (8.000, -9.000),
+    "Rack D": (5.000, -9.000),
+    "Rack 1": (3.000, -2.000),
+    "Rack 2": (3.000, -6.000),
+    "Rack 3": (3.000, -10.000)
 }
 
 # List of known robot names
@@ -42,6 +56,11 @@ def parse_command_with_gpt(text):
     Each command might include:
     - A destination (e.g., "point A", "point C")
     - An optional robot ID (like "Robot1", "Robot0")
+    - If the user says something close to a valid label (typos, plurals, articles),
+    choose the closest valid label.
+
+    Valid destination labels are those in the location map:
+    {location_map}
 
     If no robot is mentioned, return null for "robot_id".
 
@@ -79,16 +98,11 @@ def get_coordinates(destination):
     if destination is None:
         print("⚠️ No destination provided.")
         return None
-    coords = location_map.get(destination.lower())
+    coords = location_map.get(destination)
     if coords is None:
         print(f"⚠️ Unknown destination: '{destination}'.")
     return coords
 
-def find_available_robot():
-    for robot in robot_list:
-        if shared.robot_status.get(robot) == "idle":
-            return robot
-    return None
 
 async def send_to_robot(sim, robot_id, goal_pos):
     if robot_id is None:
@@ -115,27 +129,29 @@ async def send_to_robot(sim, robot_id, goal_pos):
 
 async def main_loop(sim):
     print("🤖 LLM Command Listener is active. Press Ctrl+C to stop.")
-    # while True:
-    #     try:
-    #         text = recognize_speech()
-    #         if not text:
-    #             continue
+    while True:
+        try:
+            text = recognize_speech()
+            if not text:
+                continue
             
-    #         parsed = parse_command_with_gpt(text)
-    #         if parsed:
-    #             dest = parsed.get("destination")
-    #             robot = parsed.get("robot_id")
-    #             coords = get_coordinates(dest)
-    #             if coords is None:
-    #                 print("🛑 Invalid location. Try again.")
-    #                 continue
-    #             await send_to_robot(sim, robot, coords)
-    #         time.sleep(1)
-    #     except KeyboardInterrupt:
-    #         print("\n👋 Stopping LLM listener.")
-    #         break
-    robot = "Robot0"
-    coords = [+6.300, -2.525]  #[3.3, -9.67]
+            parsed = parse_command_with_gpt(text)
+            if parsed:
+                dest = parsed.get("destination")
+                robot = parsed.get("robot_id")
+                coords = get_coordinates(dest)
+                if coords is None:
+                    print("🛑 Invalid location. Try again.")
+                    continue
+                await send_to_robot(sim, robot, coords)
+            time.sleep(1)
+        except KeyboardInterrupt:
+            print("\n👋 Stopping LLM listener.")
+            break
+    # Manual override
+    # robot = "Robot2"
+    # coords = [-2.5, -6.5]
+
     await send_to_robot(sim, robot, coords)
 
 if __name__ == "__main__":

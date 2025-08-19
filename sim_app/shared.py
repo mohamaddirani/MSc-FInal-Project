@@ -11,7 +11,8 @@ import os, math, numpy as np
 MAP_RESOLUTION = 0.2                            # meters / cell
 GRID_SIZE = 225                                 # keep odd size so center is an integer cell
 MAP_SIZE_M = GRID_SIZE * MAP_RESOLUTION
-
+INFLATION_RADIUS_M = 0.10
+FREEZE_MAP = True    # True = use the saved map only; no live updates
 # --- persistent map memory (in RAM) ---
 global_occupancy = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.uint8)    # 0=free, 1=hit
 global_costmap   = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)  # 0.0=free, 1.0=inflated
@@ -80,8 +81,11 @@ latest_astar_path: list = []
 executed_path:     list = []
 planned_path:      list = []
 
-robot_start = (0.0, 0.0)
-
+robot_start_positions = {
+    "Rob0": (0.0, 0.0),
+    "Rob1": (0.0, 0.0),
+    "Rob2": (0.0, 0.0),
+}
 # Robot world positions (updated by PathExecutor each step)
 robot_positions = {
     "Rob0": (0.0, 0.0),

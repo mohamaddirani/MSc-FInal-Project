@@ -18,7 +18,7 @@ ID_TO_MODEL = {"Rob0": "Omnirob0", "Rob1": "Omnirob1", "Rob2": "Omnirob2"}
 async def init_all_controllers(sim):
     ctrls = {}
     for rid in ROBOT_IDS:
-        ctrl = OmniRobotController()
+        ctrl = OmniRobotController(sim)
         try:
             await ctrl.init_handles(sim, robot_name=ID_TO_MODEL[rid])
             ctrls[rid] = ctrl
@@ -27,17 +27,15 @@ async def init_all_controllers(sim):
     return ctrls
 
 async def refresh_all_robot_states(ctrls):
-    # keep shared.robot_positions/orientations fresh for ALL robots
     for rid, ctrl in ctrls.items():
         try:
-            pos = await ctrl.get_position()
-            ori = await ctrl.get_orientation()
-            # store xy only for pos, full tuple for ori
+            pos = await ctrl.get_position()       # no args
+            ori = await ctrl.get_orientation()    # no args
+            #print(f"🔄 Refreshed {rid} position: {pos}, orientation: {ori}")
             shared.robot_positions[rid] = (pos[0], pos[1])
             shared.robot_orientation[rid] = ori
         except Exception as e:
             print(f"⚠️ Failed refresh for {rid}: {e}")
-
 
 async def wait_for_any_robot_goal():
     print("⏳ Waiting for any robot goal from LLM...")
@@ -78,16 +76,6 @@ async def wait_for_any_robot_goal():
             print(f"⚠️ Error while reading goal file: {e}")
         await asyncio.sleep(0.5)
 
-async def get_robot_position(sim, robot_name):
-    controller = OmniRobotController()
-    await controller.init_handles(sim, robot_name=f"Omnirob{robot_name[-1]}")
-    return await controller.get_position()
-
-async def get_robot_orientation(sim, robot_name):
-    controller = OmniRobotController()
-    await controller.init_handles(sim, robot_name=f"Omnirob{robot_name[-1]}")
-    return await controller.get_orientation()
-
 
 async def run():
     
@@ -118,8 +106,8 @@ async def run():
             for robot_name, goal in shared.robot_goal.items():
                 if goal and robot_name not in active_tasks:
                     print(f"🚀 Launching task for {robot_name} at {time.time()}")
-                    start_pos = await get_robot_position(sim, robot_name)
-                    start_ori = await get_robot_orientation(sim, robot_name)
+                    start_pos = shared.robot_positions[robot_name]
+                    start_ori = shared.robot_orientation[robot_name]
                     task = asyncio.create_task(excute(sim, start_pos, start_ori, robot_name, goal))
                     active_tasks[robot_name] = task
                     
@@ -128,7 +116,8 @@ async def run():
             for robot_name, task in active_tasks.items():
                 if task.done():
                     result = task.result()
-                    shared.save_map()
+                    if not shared.FREEZE_MAP:
+                        shared.save_map()
                     print(f"🏁 Final outcome for {robot_name}: {result}")
                     shared.robot_status[robot_name] = "idle"
                     shared.robot_goal[robot_name] = None

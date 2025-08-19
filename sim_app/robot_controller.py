@@ -1,20 +1,13 @@
 # sim_app/robot_controller.py
-
 class OmniRobotController:
     """
-    Controller class for an omnidirectional robot in a simulation environment.
-    Methods
-    -------
-    __init__():
-        Initializes the controller state.
-    async init_handles(sim, robot_name):
-        Asynchronously initializes simulation object handles for the robot and its wheels.
-        Sets the joint force for each wheel motor and marks the controller as initialized.
-    async get_position():
-        Asynchronously retrieves the current (x, y) position of the robot in the simulation.
+    Holds the robot handle after init_handles and exposes no-arg getters.
     """
-    def __init__(self):
+    def __init__(self, sim=None):
         self.initialized = False
+        self.sim = sim
+        self.robot = None
+        self.wheels = {}
 
     async def init_handles(self, sim, robot_name):
         self.sim = sim
@@ -24,17 +17,16 @@ class OmniRobotController:
             "rl": await sim.getObject(f'/{robot_name}/RLwheel_motor'),
             "rr": await sim.getObject(f'/{robot_name}/RRwheel_motor'),
         }
-        self.robot = await sim.getObject(f'/{robot_name}')
-        for joint in self.wheels.values():
-            await sim.setJointTargetForce(joint, 100)
+        self.robot = await sim.getObject(f'/{robot_name}')  # <-- numeric handle
+        for j in self.wheels.values():
+            await sim.setJointTargetForce(j, 100)
         self.initialized = True
         print(f"🔧 {robot_name} controller initialized.")
-        
+
     async def get_position(self):
         pos = await self.sim.getObjectPosition(self.robot, -1)
         return pos[:2]
 
     async def get_orientation(self):
         ori = await self.sim.getObjectOrientation(self.robot, -1)
-        print(f"Orientation of {self.robot}: {ori}")
         return ori
