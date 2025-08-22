@@ -1,20 +1,20 @@
 # sim_app/LLM.py
-
 import json
-import speech_recognition as sr
-from openai import OpenAI
-import json
-import sim_app.shared as shared
+import os
 import time
 import asyncio
-from sim_app.check_nearest_robot import find_available_robot
-import os
+import difflib
+import speech_recognition as sr
+import pyttsx3
 from dotenv import load_dotenv
+from openai import OpenAI
+
+import sim_app.shared as shared
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Predefined map of destination labels to coordinates
+# ===== Location map (as you had) =====
 location_map = {
     "Meetings Table": (-1.500, -7.000),
     "Office Table": (-2.000, 2.000),
@@ -30,136 +30,224 @@ location_map = {
     "Rack D": (5.000, -9.000),
     "Rack 1": (3.000, -2.000),
     "Rack 2": (3.000, -6.000),
-    "Rack 3": (3.000, -10.000)
+    "Rack 3": (3.000, -10.000),
 }
 
-# List of known robot names
 robot_list = ["Rob0", "Rob1", "Rob2"]
 
-def recognize_speech():
-    recognizer = sr.Recognizer()
+CMD_FILE = "shared_cmd.json"
+GOAL_FILE = "shared_goal.json"
+REPLY_FILE = "shared_reply.json"
+USE_WHISPER = True
+
+recognizer = sr.Recognizer()
+engine = pyttsx3.init()
+
+def speak(text):
+    print(text)
+    engine.say(text)
+    engine.runAndWait()
+
+def listen():
     with sr.Microphone() as source:
-        print("\n🎙️ Say your command...")
+        print("Listening...")
         audio = recognizer.listen(source)
     try:
-        text = recognizer.recognize_google(audio)
-        print("📝 You said:", text)
-        return text
+        command = recognizer.recognize_google(audio)
+        print(f"You said: {command}")
+        return command.lower()
     except sr.UnknownValueError:
-        print("❌ Could not understand audio.")
+        speak("Sorry, I did not understand.")
+        return None
+    except sr.RequestError as e:
+        speak(f"Google Speech Recognition service error: {e}")
+        print("Troubleshooting tips:")
+        print("- Check your internet connection.")
+        print("- Make sure your firewall is not blocking Python.")
+        print("- Try running on a different network.")
         return None
 
-def parse_command_with_gpt(text):
-    prompt = f"""
-    You are an API that receives robot commands in natural language and returns JSON only.
-
-    Each command might include:
-    - A destination (e.g., "point A", "point C")
-    - An optional robot ID (like "Robot1", "Robot0")
-    - If the user says something close to a valid label (typos, plurals, articles),
-    choose the closest valid label.
-
-    Valid destination labels are those in the location map:
-    {location_map}
-
-    If no robot is mentioned, return null for "robot_id".
-
-    Always return in this JSON format:
-    {{"robot_id": "Robot1" or null, "destination": "point A"}}
-
-    Now parse:
-    "{text}"
-    Respond with JSON only. No explanation.
+def parse_command_with_gpt(text: str):
     """
+    The model returns ONE of these intent payloads:
 
+    {
+      "intent": "move",
+      "robot_id": "Rob1" | null,
+      "destination": "Meetings Table"
+    }
+
+    {
+      "intent": "status",
+      "robot_id": "Rob2" | null     # null => all
+    }
+
+    { "intent": "stop", "robot_id": "Rob1" }          # force stop
+
+    { "intent": "go_home", "robot_id": "Rob0" }       # return to start
+
+    {
+      "intent": "position",
+      "robot_id": "Rob2" | null     # null => all
+    }
+
+    {
+      "intent": "nearest_to_location",
+      "location_label": "Rack 1"
+    }
+    """
+    prompt = f"""
+You are a command parser. Output ONLY JSON (no prose). Choose the best intent.
+
+Valid location labels: {list(location_map.keys())}
+Valid robots: {robot_list}
+
+Return one of these schemas:
+
+1) Move:
+{{
+  "intent": "move",
+  "robot_id": "RobX" or null,
+  "destination": "<one of the valid location labels>"
+}}
+
+2) Status query:
+{{ "intent": "status", "robot_id": "RobX" or null }}
+
+3) Force stop:
+{{ "intent": "stop", "robot_id": "RobX" }}
+
+4) Go back to start:
+{{ "intent": "go_home", "robot_id": "RobX" }}
+
+5) Position query:
+{{ "intent": "position", "robot_id": "RobX" or null }}
+
+6) Nearest robot to a named location:
+{{ "intent": "nearest_to_location", "location_label": "<valid location>" }}
+
+User text: "{text}"
+Respond with JSON only.
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # small, fast
+        messages=[{"role": "user", "content": prompt}]
+    )
+    reply = response.choices[0].message.content.strip()
+    if reply.startswith("```"):
+        reply = reply.split("```")[1].strip()
+    if reply.lower().startswith("json"):
+        reply = reply[4:].strip()
+    print("🤖 GPT Output:", reply)
+    return json.loads(reply)
+
+def fuzzy_label(label: str):
+    """Return the nearest valid location label, or None."""
+    if not label:
+        return None
+    keys = list(location_map.keys())
+    match = difflib.get_close_matches(label, keys, n=1, cutoff=0.5)
+    return match[0] if match else None
+
+def coords_for_label(label: str):
+    """Fuzzy map a label to coordinates."""
+    best = fuzzy_label(label)
+    if not best:
+        print(f"⚠️ Unknown location name: '{label}'")
+        return None, None
+    return best, location_map[best]
+
+async def send_move_goal(sim, robot_id, dest_label):
+    label, coords = coords_for_label(dest_label)
+    if not coords:
+        print("🛑 Invalid location. Try again.")
+        return
+    if robot_id:
+        robot_id = robot_id.replace("Robot", "Rob")  # sanitize
+    payload = { (robot_id or "auto"): coords }  # main.py handles 'auto' by nearest idle
+    print(f"🚀 Move: {robot_id or 'auto'} -> {label} @ {coords}")
+    with open(GOAL_FILE, "w") as f:
+        json.dump(payload, f)
+
+def write_cmd(obj: dict):
+    # overwrite any previous pending command
+    with open(CMD_FILE, "w") as f:
+        json.dump(obj, f)
+
+def try_read_reply():
+    if not os.path.exists(REPLY_FILE):
+        return None
     try:
-        response = client.chat.completions.create(
-            model="gpt-4-1106-preview",
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        reply = response.choices[0].message.content.strip()
-        if reply.startswith("```"):
-            reply = reply.split("```")[1].strip()
-        if reply.lower().startswith("json"):
-            reply = reply[4:].strip()
-
-        print("🤖 GPT Output:", reply)
-        return json.loads(reply)
-
+        with open(REPLY_FILE, "r") as f:
+            data = json.load(f)
+        # best‑effort cleanup
+        try:
+            os.remove(REPLY_FILE)
+        except Exception:
+            pass
+        return data
     except Exception as e:
-        print("❌ GPT error:", e)
-        if 'reply' in locals():
-            print("📝 Raw GPT output that caused error:", reply)
+        print(f"⚠️ Failed to read reply: {e}")
         return None
-
-
-def get_coordinates(destination):
-    if destination is None:
-        print("⚠️ No destination provided.")
-        return None
-    coords = location_map.get(destination)
-    if coords is None:
-        print(f"⚠️ Unknown destination: '{destination}'.")
-    return coords
-
-
-async def send_to_robot(sim, robot_id, goal_pos):
-    if robot_id is None:
-        robot_id, start_pos = await find_available_robot(sim, goal_pos)
-        if robot_id is None:
-            print("⚠️ Could not find available robot.")
-            return
-    else:
-        robot_id = robot_id.replace("Robot", "Rob")
-        start_pos = None  # Optional: can also look it up from controller if needed
-
-    print(f"🚀 Sending {robot_id} to coordinates {goal_pos}")
-
-    shared.robot_name = robot_id
-    shared.robot_goal[robot_id] = goal_pos
-    shared.robot_status[robot_id] = "busy"
-    if start_pos:
-        shared.robot_start = start_pos
-
-    # Save to file so main.py picks it up
-    with open("shared_goal.json", "w") as f:
-        json.dump({robot_id: goal_pos}, f)
-
 
 async def main_loop(sim):
     print("🤖 LLM Command Listener is active. Press Ctrl+C to stop.")
     while True:
         try:
-            text = recognize_speech()
+            text = listen()
             if not text:
                 continue
-            
+
             parsed = parse_command_with_gpt(text)
-            if parsed:
-                dest = parsed.get("destination")
-                robot = parsed.get("robot_id")
-                coords = get_coordinates(dest)
-                if coords is None:
-                    print("🛑 Invalid location. Try again.")
-                    continue
-                await send_to_robot(sim, robot, coords)
-            time.sleep(1)
+            intent = (parsed or {}).get("intent")
+
+            if intent == "move":
+                await send_move_goal(sim, parsed.get("robot_id"), parsed.get("destination"))
+
+            elif intent == "status":
+                write_cmd({"type": "status", "robot_id": parsed.get("robot_id")})
+                await asyncio.sleep(0.2)
+                reply = try_read_reply()
+                print("📣 Status:", reply or "(no reply)")
+
+            elif intent == "stop":
+                write_cmd({"type": "stop", "robot_id": parsed.get("robot_id")})
+                print(f"🛑 Stop sent to {parsed.get('robot_id')}")
+
+            elif intent == "go_home":
+                write_cmd({"type": "go_home", "robot_id": parsed.get("robot_id")})
+                print(f"🏠 Go‑home sent to {parsed.get('robot_id')}")
+
+            elif intent == "position":
+                write_cmd({"type": "position", "robot_id": parsed.get("robot_id")})
+                await asyncio.sleep(0.2)
+                reply = try_read_reply()
+                print("📍 Position:", reply or "(no reply)")
+
+            elif intent == "nearest_to_location":
+                label = parsed.get("location_label")
+                best = fuzzy_label(label)
+                if not best:
+                    print(f"⚠️ Unknown location: '{label}'")
+                else:
+                    write_cmd({"type": "nearest_to_location", "location_label": best})
+                    await asyncio.sleep(0.2)
+                    reply = try_read_reply()
+                    print("🤖 Nearest robot:", reply or "(no reply)")
+
+            else:
+                print("🤷 Unrecognized intent:", parsed)
+
+            time.sleep(0.3)
+
         except KeyboardInterrupt:
             print("\n👋 Stopping LLM listener.")
             break
-    # Manual override
-    # robot = "Robot2"
-    # coords = [-2.5, -6.5]
-
-    await send_to_robot(sim, robot, coords)
 
 if __name__ == "__main__":
     import asyncio
     from sim_app.sim_client import get_sim
-
     async def start():
         client, sim = await get_sim()
         await main_loop(sim)
-
     asyncio.run(start())

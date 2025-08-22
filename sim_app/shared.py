@@ -13,6 +13,10 @@ GRID_SIZE = 225                                 # keep odd size so center is an 
 MAP_SIZE_M = GRID_SIZE * MAP_RESOLUTION
 INFLATION_RADIUS_M = 0.10
 FREEZE_MAP = True    # True = use the saved map only; no live updates
+
+PATH_CLEARANCE_M = 0.25
+
+
 # --- persistent map memory (in RAM) ---
 global_occupancy = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.uint8)    # 0=free, 1=hit
 global_costmap   = np.zeros((GRID_SIZE, GRID_SIZE), dtype=np.float32)  # 0.0=free, 1.0=inflated
@@ -74,12 +78,13 @@ def ensure_map_covers(xs, ys, margin_m: float = 1.0):
     MAP_SIZE_M = GRID_SIZE * MAP_RESOLUTION
 
 # ---------- dynamic runtime state ----------
-latest_data     = defaultdict(list)   # signal_name -> [(x,y,z,dist), ...] in robot-local (laser_frame)
+latest_data     = defaultdict(list)
 all_sensor_data = defaultdict(list)
 
 latest_astar_path: list = []
 executed_path:     list = []
 planned_path:      list = []
+temp_parking = {}
 
 robot_start_positions = {
     "Rob0": (0.0, 0.0),
@@ -110,6 +115,18 @@ robot_status = {
     "Rob0": "idle",
     "Rob1": "idle",
     "Rob2": "idle",
+}
+
+robot_abort = {
+    "Rob0": False,
+    "Rob1": False,
+    "Rob2": False,
+}
+
+pending_home = {
+    "Rob0": None,
+    "Rob1": None,
+    "Rob2": None,
 }
 
 message_log: list = []

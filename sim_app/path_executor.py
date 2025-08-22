@@ -1,3 +1,6 @@
+# sim_app.path_executor.py
+from datetime import time
+from time import time
 import asyncio, math, numpy as np
 
 from sim_app.obstacle_awareness import is_path_clear, check_sensors_for_obstacle
@@ -7,6 +10,9 @@ from sim_app.robot_motion import RobotMotion
 from sim_app.map_builder import update_memory_with_latest, rebuild_costmap
 from sim_app.astar_env import meters_to_grid
 from sim_app.robot_controller import OmniRobotController
+from sim_app.robots_awareness import request_robot_to_clear, return_parked_robot_after_active_done
+
+
 
 goal_error_threshold = 0.1
 speed = 100*math.pi/180
@@ -48,26 +54,32 @@ class PathExecutor:
         )
 
     async def follow_path(self, path):
+        shared.planned_path = path
         for waypoint in path[2:]:
             await self.reset_orientation()
-            shared.planned_path.append(waypoint)
             while True:
                 result = await self.move_to_goal(waypoint)
                 if result is not None:
                     if result == "MOVING":
-                        cur = await self.get_position()
-                        print(f"current position: {cur}")
-                        print(f"reached waypoint {waypoint}")
                         break
-                    else:
+                    elif result in ["replanned", "FAILED"]:
                         return result
-                # avoid tight CPU spin
                 await asyncio.sleep(0.01)
+
+        await return_parked_robot_after_active_done(self.sim, self.robot)
         return "DONE"
 
+
     async def move_to_goal(self, waypoint):
+        print(f"Moving to waypoint: {waypoint}")
         Robot = self.robot
         motion = RobotMotion(self.sim, self.wheels)
+
+        # abort path?
+        if shared.robot_abort.get(Robot):
+            shared.robot_abort[Robot] = False
+            await motion.stop()
+            return "FAILED"
 
         await self.reset_orientation()
         current = await self.get_position()
@@ -82,98 +94,147 @@ class PathExecutor:
         dx = 0 if abs(dx) < goal_error_threshold else dx
         dy = 0 if abs(dy) < goal_error_threshold else dy
 
-        # keep sensors + localization refresh (map updates are gated by FREEZE_MAP)
+        # sensor + optional map refresh
         await fetch_sensor_data(self.sim, f"{Robot}_S300_combined_data")
         await fetch_sensor_data(self.sim, f"{Robot}_S3001_combined_data")
+        print("sensor fetched")
         shared.robot_orientation[Robot] = await self.get_orientation()
         shared.robot_positions[Robot]   = await self.get_position()
         if not shared.FREEZE_MAP:
             update_memory_with_latest(Robot)
-            rebuild_costmap(inflation_radius_m=shared.INFLATION_RADIUS_M)
-
-
-        # ---- IMPORTANT: check blockage against the SAME planning grid ----
+            rebuild_costmap(inflation_radius_m=shared.INFLATION_RADIUS_M)     # 
+        grid_now = getattr(shared, "costmap", None)  # if you keep an inflated costmap
+        if grid_now is None:
+            grid_now = shared.global_occupancy       # fallback to raw occupancy
+        self.plan_grid = grid_now 
+        # still block if the target cell itself is hard-blocked in the planning grid
         way_g = meters_to_grid(waypoint[0], waypoint[1], self.plan_grid, MAP_RES)
         wy = min(max(way_g[1], 0), self.plan_grid.shape[0]-1)
         wx = min(max(way_g[0], 0), self.plan_grid.shape[1]-1)
-        if self.plan_grid[wy, wx] >= 0.99:
+        # treat any non-free (>0) as blocked if you're using an inflated costmap
+        if self.plan_grid[wy, wx] >= 1 or self.plan_grid[wy, wx] > 0:
             return "replanned"
 
-        # motion logic unchanged
+        # reached waypoint?
         align_tol = 0.10
         if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
             await motion.stop()
             return "MOVING"
 
+        # --- compute intended motion BEFORE obstacle check ---
         move = "Diagonal" if (abs(dx) > align_tol and abs(dy) > align_tol) else \
                ("Horizontal" if abs(dx) >= abs(dy) else "Vertical")
+        print("reached checking sensors")
+        # --- read obstacles ONCE ---
+        dirs, robot_info = check_sensors_for_obstacle(dx, dy, Robot)
+        x_dir, y_dir, frdiag, brdiag = dirs
+        robot_name_hit, robot_dir_hit = robot_info
+        print(f"dirs={dirs}, robot={robot_info}")
 
-        vx , vy = await motion.set_velocity(dx, dy, move)
-        print(f" dx = {dx}, dy = {dy}, vx = {vx}, vy = {vy}, move = {move}")
-
-        obstacles = check_sensors_for_obstacle(dx, dy, Robot)
-        await self.reset_orientation()
-        print(f"Obstacle directions: {obstacles}")
-
-        alignment = await self.check_alignment(obstacles, coordinates_for_goal)
-        aligned = 0
-        if alignment:
-            aligned += 1
-            print(f"Alignment check passed for {Robot}: {aligned}")
-            if aligned < 2:
+        # --- ROBOT obstacle branch ---
+        if robot_name_hit:
+            blocker = robot_name_hit
+            # decide axis & side to request based on the robot direction
+            if robot_dir_hit in ["left", "right", "front-left", "back-left", "front-right", "back-right"]:
+                # For left/right or diagonal including left/right, clear X
+                # Choose side consistent with where we intend to go (dx), fall back to the seen side
+                block_direction = ("left" if (dx > 0 or "left" in robot_dir_hit) else "right")
                 await motion.stop()
+                print(f"Requesting {blocker} to clear path (X-axis, {block_direction})")
+                parked = await request_robot_to_clear(self.sim, (goal_coords[0], goal_coords[1]), Robot, blocker, block_direction)
+                if parked: return None
+                await motion.stop(); return "replanned"
+
+            if robot_dir_hit in ["front", "back"]:
+                block_direction = ("front" if (dy < 0 or robot_dir_hit == "front") else "back")
+                await motion.stop()
+                print(f"Requesting {blocker} to clear path (Y-axis, {block_direction})")
+                parked = await request_robot_to_clear(self.sim, (goal_coords[0], goal_coords[1]), Robot, blocker, block_direction)
+                if parked: return None
+                await motion.stop(); return "replanned"
+            
+
+        # --- NON-robot obstacles ---
+        # 1) If cardinal blocks exist, use your old logic
+        if (x_dir != "Free" and abs(dx) > 0) or (y_dir != "Free" and abs(dy) > 0):
+            await motion.stop()
+            print("NON-robot obstacles (cardinal)")
+            if not is_path_clear(x_dir, Robot) and not is_path_clear(y_dir, Robot):
                 return "replanned"
             else:
-                return "FAILED"
+                # prefer handling the axis that's blocked; fall back to the other
+                block = x_dir if x_dir != "Free" else y_dir
+                handle = await self.handle_obstacle(Robot, block, dx, dy)
+                if handle == "CLEARED": return "replanned"
+                elif handle is not None:   return handle
+        else:
+            print("No obstacles detected; proceeding.")
 
-        if (vx == 0 and vy == 0) or obstacles != ("Free","Free"):
-            if not is_path_clear(obstacles[0], Robot) and not is_path_clear(obstacles[1], Robot):
+        # 2) If only diagonals are blocked, act on the blocked diagonal
+        diag_block = frdiag if frdiag != "Free" else (brdiag if brdiag != "Free" else "Free")
+        if diag_block != "Free" and (abs(dx) > 0 and abs(dy) > 0):
+            if (diag_block == "front-left" and dy < 0 and dx > 0) or (diag_block == "front-right" and dy < 0 and dx < 0) or (diag_block == "back-left" and dy > 0 and dx > 0) or (diag_block == "back-right" and dy > 0 and dx < 0):
                 await motion.stop()
-                return "replanned"
-            else:
-                i = 0 if obstacles[0] != "Free" else 1
-                await motion.stop()
-                print("obstacle handling")
-                handle = await self.handle_obstacle(Robot, obstacles[i], dx, dy)
+                print(f"NON-robot obstacles (diagonal): {diag_block}")
+                handle = await self.handle_obstacle(Robot, diag_block, dx, dy)
                 if handle == "CLEARED":
-                    return "replanned"
+                    return "replanned"   # detoured; now plan cleanly from the new pose
                 elif handle is not None:
                     return handle
+        else:
+            print("No obstacles detected; proceeding.")
+                
+        await self.reset_orientation()
+        # no obstacle: actually move
+        vx, vy = await motion.set_velocity(dx, dy, move)
+        print(f" dx = {dx}, dy = {dy}, vx = {vx}, vy = {vy}, move = {move}")
 
         if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
             return "MOVING"
 
-    async def check_alignment(self, direction, coordinates_for_goal):
-        print("checking alignment")
-        if direction[1] in ["front", "back"] and abs(coordinates_for_goal[0]) < goal_error_threshold:
-            if (direction[1] == "front" and coordinates_for_goal[1] > 0) or (direction[1] == "back" and coordinates_for_goal[1] < 0):
-                return True
-        elif direction[0] in ["left", "right"] and abs(coordinates_for_goal[1]) < goal_error_threshold:
-            if (direction[0] == "left" and coordinates_for_goal[0] > 0) or (direction[0] == "right" and coordinates_for_goal[0] < 0):
-                return True
-
-    async def handle_obstacle(self, Robot, direction, dx, dy):
-        aligned = 0
+    async def handle_obstacle(self, Robot, direction, dx, dy, safety_clear_time: float = 0.6):
         current_pos = await self.get_position()
-        robot_goal = shared.robot_goal[Robot]
+        robot_goal  = shared.robot_goal[Robot]
+
+        diag = None  # <-- ensure defined
 
         if direction in ["left", "right"]:
             temp_goal = (current_pos[0], robot_goal[1])
         elif direction in ["front", "back"]:
             temp_goal = (robot_goal[0], current_pos[1])
+        elif direction in ["front-left", "front-right"]:
+            diag = "fd"
+            temp_goal = (robot_goal[0], current_pos[1])
+        elif direction in ["back-left", "back-right"]:
+            diag = "bd"
+            temp_goal = (robot_goal[0], current_pos[1])
         else:
-            temp_goal = current_pos
-        while True:
+            temp_goal = (robot_goal[0], current_pos[1])  # safe default
 
+        while True:
             await self.reset_orientation()
-            new_direction = check_sensors_for_obstacle(dx, dy, Robot)
-            if new_direction[0] != direction and new_direction[1] != direction:
+
+            # refresh pose each loop (so temp_goal uses fresh coords when we switch axes)
+            current_pos = await self.get_position()
+            new_dirs, new_rob = check_sensors_for_obstacle(dx, dy, Robot)
+            robot_dir = new_rob[1] if new_rob else None
+
+            # cleared if the original 'direction' is not reported in dirs AND not as the robot_dir
+            if (direction not in new_dirs) and (robot_dir != direction):
+                print(f"waiting before returning")
+                await asyncio.sleep(5)
                 return "CLEARED"
+            
+            # for diagonal cases, if we see a left/right component then align on Y instead (your logic)
+            if diag and ("right" in new_dirs or "left" in new_dirs):
+                temp_goal = (current_pos[0], robot_goal[1])
+
             move = await self.move_to_goal(temp_goal)
-            if move is True:
-                aligned += 1
-                if aligned >= 2:
-                    return "FAILED"
-            if move is not None:
+
+            # only exit the handler on hard outcomes; otherwise keep looping until 'CLEARED'
+            if move in ("replanned", "FAILED"):
                 return move
+
             await asyncio.sleep(0.01)
+
+
