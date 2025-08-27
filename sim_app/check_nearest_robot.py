@@ -1,23 +1,40 @@
 # sim_app/check_nearest_robot.py
-import math
-import asyncio
-import numpy as np
-from time import time
+"""
+Planning + execution utilities:
+- Build a planning grid (without footprint clearing).
+- Plan A* path for a given robot.
+- Choose the nearest idle robot to a goal.
+- Execute a planned path (excute) with replanning and abort handling.
 
-from sim_app.robot_controller import OmniRobotController
-from sim_app import shared
-from sim_app.astar_env import AStarEnvironment, grid_to_meters, meters_to_grid
-from sim_app.path_executor import PathExecutor
-from sim_app.astar import AStar
+Notes:
+- Keeps original constants, prints, and function names (including 'excute').
+"""
+
+import asyncio
+import math
+import numpy as np
+from time import time  # kept even if unused
+
 import sim_app.robot_motion as OmniRobotMotion
+from sim_app import shared
+from sim_app.astar import AStar
+from sim_app.astar_env import AStarEnvironment, grid_to_meters, meters_to_grid
 from sim_app.map_builder import get_planning_costmap
+from sim_app.path_executor import PathExecutor
 from sim_app.path_viz import plot_paths_once
+from sim_app.robot_controller import OmniRobotController
+
 
 ROBOT_IDS = ["Rob0", "Rob1", "Rob2"]
 ID_TO_MODEL = {"Rob0": "Omnirob0", "Rob1": "Omnirob1", "Rob2": "Omnirob2"}
 
 # Tiny launch/arrival carve (cells)
 CLEAR_START_GOAL_RADIUS = 1
+
+
+# -----------------------------------------------------------------------------
+# Planning grid
+# -----------------------------------------------------------------------------
 
 def _current_planning_grid() -> np.ndarray:
     """
@@ -32,20 +49,30 @@ def _current_planning_grid() -> np.ndarray:
     return grid
 
 
+# -----------------------------------------------------------------------------
+# Planner
+# -----------------------------------------------------------------------------
 
 async def plan_path(start_pos, goal_pos, robot_name):
+    """
+    Plan an A* path in meters between start_pos and goal_pos for robot_name.
+    Returns (path_in_meters, planning_grid) or (None, None) if planning fails.
+    """
     if not shared.FREEZE_MAP:
-        shared.ensure_map_covers([start_pos[0], goal_pos[0]],
-                                 [start_pos[1], goal_pos[1]], margin_m=1.0)
+        shared.ensure_map_covers(
+            [start_pos[0], goal_pos[0]],
+            [start_pos[1], goal_pos[1]],
+            margin_m=1.0,
+        )
 
     grid = _current_planning_grid()
     if grid.size == 0:
         print("⛔ Planning grid is empty. Did you load the saved map?")
         return None, None
 
-    res  = shared.MAP_RESOLUTION
+    res = shared.MAP_RESOLUTION
     start_grid = meters_to_grid(start_pos[0], start_pos[1], grid, res)
-    goal_grid  = meters_to_grid(goal_pos[0],  goal_pos[1],  grid, res)
+    goal_grid = meters_to_grid(goal_pos[0], goal_pos[1], grid, res)
 
     H, W = grid.shape
     for (gx, gy), tag in ((start_grid, "start"), (goal_grid, "goal")):
@@ -59,10 +86,11 @@ async def plan_path(start_pos, goal_pos, robot_name):
         goal_grid,
         res,
         block_threshold=0.99,        # keep binary blocking strict
-        soft_cost_gain=None,         # we are using proximity cost instead
+        soft_cost_gain=None,         # using proximity cost instead
         proximity_k_cells=3,         # rings to look around each neighbor (3 * 0.20 = 0.60 m)
-        proximity_cost_gain=0.5      # tune 0.5–2.0; higher = keeps farther from walls
+        proximity_cost_gain=0.5,     # tune 0.5–2.0; higher = keeps farther from walls
     )
+
     path_g = await asyncio.to_thread(AStar(env).search, "robot")
     if not path_g:
         print("❌ No path found during planning!")
@@ -72,6 +100,11 @@ async def plan_path(start_pos, goal_pos, robot_name):
     print(f"🚦 A* planned path with {len(path_m)} waypoints.")
     shared.latest_astar_path_by_robot[robot_name] = list(path_m)
     return path_m, grid
+
+
+# -----------------------------------------------------------------------------
+# Robot selection
+# -----------------------------------------------------------------------------
 
 async def find_available_robot(sim, goal_pos):
     """
@@ -114,7 +147,15 @@ async def find_available_robot(sim, goal_pos):
     return robot_id, start_pos
 
 
+# -----------------------------------------------------------------------------
+# Execution
+# -----------------------------------------------------------------------------
+
 async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
+    """
+    Execute motion for `robot_name` from start_pos/orientation to goal_pos.
+    Handles replanning, aborts, and final state updates. Returns "DONE" or "FAILED".
+    """
     model = ID_TO_MODEL.get(robot_name)
     if not model:
         print(f"⚠️ Unknown robot name: {robot_name}")
@@ -127,7 +168,7 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
     shared.robot_goal[robot_name] = tuple(goal_pos)
     shared.robot_status[robot_name] = "busy"
 
-    motion = OmniRobotMotion.RobotMotion(sim, controller.wheels)  # <-- create once
+    motion = OmniRobotMotion.RobotMotion(sim, controller.wheels)  # create once
 
     max_replans = 8
     for _ in range(max_replans):
@@ -148,7 +189,7 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
 
         executor = PathExecutor(sim, robot_name, controller.wheels, controller.robot, plan_grid)
 
-        # follow the path; executor itself will also honor abort (see below)
+        # follow the path; executor itself will also honor abort
         result = await executor.follow_path(path_in_meters)
 
         if shared.robot_abort.get(robot_name):

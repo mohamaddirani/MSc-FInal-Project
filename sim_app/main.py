@@ -1,19 +1,25 @@
 # sim_app/main.py
-import os, json, asyncio, math, time
+import asyncio
+import json
+import math
+import os
+import time
+
 from sim_app.sim_client import get_sim
 from sim_app import shared
 from sim_app.check_nearest_robot import excute
 from sim_app.robot_controller import OmniRobotController
 from sim_app.path_viz import live_plotter
 
+
 ROBOT_IDS = ["Rob0", "Rob1", "Rob2"]
 ID_TO_MODEL = {"Rob0": "Omnirob0", "Rob1": "Omnirob1", "Rob2": "Omnirob2"}
 
 GOAL_FILE = "shared_goal.json"
-CMD_FILE  = "shared_cmd.json"
-REPLY_FILE= "shared_reply.json"
+CMD_FILE = "shared_cmd.json"
+REPLY_FILE = "shared_reply.json"
 
-# mirror LLM location map (or move into shared if you prefer)
+# Mirror LLM location map (or move into shared if you prefer)
 LOCATION_MAP = {
     "Meetings Table": (-1.500, -7.000),
     "Office Table": (-2.000, 2.000),
@@ -32,23 +38,32 @@ LOCATION_MAP = {
     "Rack 3": (3.000, -10.000),
 }
 
+
+# -----------------------------------------------------------------------------
+# Controller & state utilities
+# -----------------------------------------------------------------------------
+
 async def init_all_controllers():
+    """Initialize all robot controllers and connections."""
     ctrls = {}
-    conns = {}   # rid -> (client, sim)
+    conns = {}  # rid -> (client, sim)
     for rid, model in ID_TO_MODEL.items():
-        client, sim = await get_sim() 
-        ctrl = OmniRobotController()                
+        client, sim = await get_sim()
+        ctrl = OmniRobotController()
         await ctrl.init_handles(sim, robot_name=model)
         pos = await ctrl.get_position()
+
         if shared.robot_start_positions[rid] == (0.0, 0.0) or shared.robot_start_positions[rid] is None:
             shared.robot_start_positions[rid] = (pos[0], pos[1])
         shared.robot_positions[rid] = (pos[0], pos[1])
+
         ctrls[rid] = ctrl
         conns[rid] = (client, sim)
     return ctrls, conns
 
 
 async def refresh_all_robot_states(ctrls):
+    """Refresh positions and orientations of all robots."""
     for rid, ctrl in ctrls.items():
         try:
             pos = await ctrl.get_position()
@@ -58,28 +73,45 @@ async def refresh_all_robot_states(ctrls):
         except Exception as e:
             print(f"⚠️ Failed refresh for {rid}: {e}")
 
+
+# -----------------------------------------------------------------------------
+# File IO helpers
+# -----------------------------------------------------------------------------
+
 def try_read_json(path):
+    """Read and delete a JSON file if it exists; return dict or None."""
     if not os.path.exists(path):
         return None
     try:
         with open(path, "r") as f:
             data = json.load(f)
         # best effort delete
-        try: os.remove(path)
-        except: pass
+        try:
+            os.remove(path)
+        except Exception:
+            pass
         return data
     except Exception as e:
         print(f"⚠️ Failed to read {path}: {e}")
         return None
 
+
 async def write_reply(obj):
+    """Write a reply JSON file."""
     with open(REPLY_FILE, "w") as f:
         json.dump(obj, f)
 
+
+# -----------------------------------------------------------------------------
+# Command/goal handlers
+# -----------------------------------------------------------------------------
+
 async def handle_goal_file(conns, active_tasks):
+    """Dispatch a goal from GOAL_FILE to a specific or nearest idle robot."""
     data = try_read_json(GOAL_FILE)
     if not data:
         return
+
     (key, goal) = list(data.items())[0]
     if key == "auto":
         candidates = []
@@ -87,7 +119,7 @@ async def handle_goal_file(conns, active_tasks):
             if shared.robot_status.get(rid) not in (None, "idle"):
                 continue
             rx, ry = shared.robot_positions.get(rid, (0.0, 0.0))
-            d = math.hypot(goal[0]-rx, goal[1]-ry)
+            d = math.hypot(goal[0] - rx, goal[1] - ry)
             candidates.append((d, rid))
         if not candidates:
             print("⛔ No idle robots available for auto-dispatch.")
@@ -101,19 +133,21 @@ async def handle_goal_file(conns, active_tasks):
     print(f"✅ Goal set for {robot_name}: {goal}")
 
     if robot_name not in active_tasks:
-        start_pos = shared.robot_positions.get(robot_name, (0.0,0.0))
-        start_ori = shared.robot_orientation.get(robot_name, (0.0,0.0,0.0))
-        client_r, sim_r = conns[robot_name]                   # use this robot's sim
+        start_pos = shared.robot_positions.get(robot_name, (0.0, 0.0))
+        start_ori = shared.robot_orientation.get(robot_name, (0.0, 0.0, 0.0))
+        _client, sim_r = conns[robot_name]  # use this robot's sim
         task = asyncio.create_task(excute(sim_r, start_pos, start_ori, robot_name, goal))
         active_tasks[robot_name] = task
 
+
 async def handle_cmd_file(conns, controllers, active_tasks):
+    """Process commands from CMD_FILE (status/position/stop/go_home/nearest_to_location)."""
     cmd = try_read_json(CMD_FILE)
     if not cmd:
         return
 
     ctype = cmd.get("type")
-    rid   = cmd.get("robot_id")
+    rid = cmd.get("robot_id")
 
     if ctype == "status":
         if rid:
@@ -126,15 +160,14 @@ async def handle_cmd_file(conns, controllers, active_tasks):
 
     elif ctype == "position":
         if rid:
-            out = {rid: {"position": shared.robot_positions.get(rid, (0.0,0.0))}}
+            out = {rid: {"position": shared.robot_positions.get(rid, (0.0, 0.0))}}
         else:
-            out = {r: {"position": shared.robot_positions.get(r, (0.0,0.0))} for r in ROBOT_IDS}
+            out = {r: {"position": shared.robot_positions.get(r, (0.0, 0.0))} for r in ROBOT_IDS}
         await write_reply(out)
 
     elif ctype == "stop" and rid in ROBOT_IDS:
         shared.robot_abort[rid] = True
         await write_reply({rid: "stopping"})
-
 
     elif ctype == "go_home" and rid in ROBOT_IDS:
         home = shared.robot_start_positions.get(rid)
@@ -154,17 +187,24 @@ async def handle_cmd_file(conns, controllers, active_tasks):
         lx, ly = LOCATION_MAP[label]
         best = None
         for r in ROBOT_IDS:
-            px, py = shared.robot_positions.get(r, (0.0,0.0))
-            d = math.hypot(lx-px, ly-py)
+            px, py = shared.robot_positions.get(r, (0.0, 0.0))
+            d = math.hypot(lx - px, ly - py)
             if (best is None) or (d < best[0]):
                 best = (d, r)
         await write_reply({"label": label, "robot": best[1], "distance": best[0]})
 
 
+# -----------------------------------------------------------------------------
+# Main loop
+# -----------------------------------------------------------------------------
+
 async def run():
+    """Main supervision loop: init, start sim, process goals/commands, schedule tasks."""
     if os.path.exists(REPLY_FILE):
-        try: os.remove(REPLY_FILE)
-        except: pass
+        try:
+            os.remove(REPLY_FILE)
+        except Exception:
+            pass
 
     shared.load_map()
 
@@ -176,8 +216,10 @@ async def run():
     await any_sim.startSimulation()
     print("✅ Connected & simulation started")
 
+    # live plots
     for rid in ROBOT_IDS:
         asyncio.create_task(live_plotter(rid, period_s=0.5))
+
     active_tasks = {}
 
     try:
@@ -195,7 +237,7 @@ async def run():
             for rid, t in active_tasks.items():
                 if t.done():
                     try:
-                        _ = t.result()     # "DONE" or "FAILED" etc.
+                        _ = t.result()  # "DONE" or "FAILED" etc.
                     except Exception:
                         pass
                     shared.robot_status[rid] = "idle"
@@ -213,10 +255,11 @@ async def run():
                     shared.robot_status[rid] = "busy"
                     start_pos = shared.robot_positions.get(rid, (0.0, 0.0))
                     start_ori = shared.robot_orientation.get(rid, (0.0, 0.0, 0.0))
-                    client_r, sim_r = conns[rid]
+                    _client, sim_r = conns[rid]
                     active_tasks[rid] = asyncio.create_task(
                         excute(sim_r, start_pos, start_ori, rid, home)
                     )
+
             await asyncio.sleep(0.05)
 
     except KeyboardInterrupt:
@@ -227,7 +270,7 @@ async def run():
 
 
 if __name__ == "__main__":
-    import sys, asyncio
+    import sys
     if sys.platform == "win32" and sys.version_info >= (3, 8):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(run())

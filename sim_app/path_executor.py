@@ -1,35 +1,57 @@
 # sim_app.path_executor.py
 from datetime import time
-from time import time
-import asyncio, math, numpy as np
-import os, json
-from sim_app.obstacle_awareness import is_path_clear, check_sensors_for_obstacle
-from sim_app.sensor_fetch import fetch_sensor_data
+from time import time  # (kept as-is even though the names shadow)
+import asyncio
+import json
+import math
+import os
+
+import numpy as np
+
 from sim_app import shared
-from sim_app.robot_motion import RobotMotion
-from sim_app.map_builder import update_memory_with_latest, rebuild_costmap
 from sim_app.astar_env import meters_to_grid
+from sim_app.map_builder import rebuild_costmap, update_memory_with_latest
+from sim_app.obstacle_awareness import check_sensors_for_obstacle, is_path_clear
 from sim_app.robot_controller import OmniRobotController
-from sim_app.robots_awareness import request_robot_to_clear, return_parked_robot_after_active_done
+from sim_app.robot_motion import RobotMotion
+from sim_app.robots_awareness import (
+    request_robot_to_clear,
+    return_parked_robot_after_active_done,
+)
+from sim_app.sensor_fetch import fetch_sensor_data
 
 
+# ============================================================================
+# Config / constants
+# ============================================================================
 
 goal_error_threshold = 0.1
-speed = 100*math.pi/180
+speed = 100 * math.pi / 180
 MAP_RES = shared.MAP_RESOLUTION
 
 CMD_FILE = "shared_cmd.json"     # same as LLM.py
 GOAL_FILE = "shared_goal.json"   # LLM may set a new goal here
 
 
+# ============================================================================
+# Helpers
+# ============================================================================
+
 def world_to_body(vx_w, vy_w, yaw):
+    """Transform world-frame velocity (vx_w, vy_w) to body frame (vx_b, vy_b)."""
     c, s = math.cos(yaw), math.sin(yaw)
-    vx_b =  c*vx_w + s*vy_w
-    vy_b = -s*vx_w + c*vy_w
+    vx_b = c * vx_w + s * vy_w
+    vy_b = -s * vx_w + c * vy_w
     return vx_b, vy_b
 
 
+# (Kept as in original)
 MAP_RES = shared.MAP_RESOLUTION
+
+
+# ============================================================================
+# Path executor
+# ============================================================================
 
 class PathExecutor:
     def __init__(self, sim, robot_name, wheels, robot_handle, plan_grid):
@@ -51,8 +73,9 @@ class PathExecutor:
     async def reset_orientation(self):
         # keep your fixed orientation reset as-is
         await self.sim.setObjectOrientation(
-            self.ID, -1,
-            [4.235164738711706e-22, 3.394632958307861e-05, -1.4349296282953856e-42]
+            self.ID,
+            -1,
+            [4.235164738711706e-22, 3.394632958307861e-05, -1.4349296282953856e-42],
         )
 
     async def follow_path(self, path):
@@ -63,7 +86,6 @@ class PathExecutor:
                 result = await self.move_to_goal(waypoint)
                 if result is not None:
                     if result == "MOVING":
-                        
                         break
                     elif result in ["replanned", "FAILED"]:
                         return result
@@ -71,7 +93,6 @@ class PathExecutor:
 
         await return_parked_robot_after_active_done(self.sim, self.robot)
         return "DONE"
-
 
     async def move_to_goal(self, waypoint):
         print(f"Moving to waypoint: {waypoint}")
@@ -103,18 +124,21 @@ class PathExecutor:
         await fetch_sensor_data(self.sim, f"{Robot}_S3001_combined_data")
         print("sensor fetched")
         shared.robot_orientation[Robot] = await self.get_orientation()
-        shared.robot_positions[Robot]   = await self.get_position()
+        shared.robot_positions[Robot] = await self.get_position()
+
         if not shared.FREEZE_MAP:
             update_memory_with_latest(Robot)
-            rebuild_costmap(inflation_radius_m=shared.INFLATION_RADIUS_M)     # 
+            rebuild_costmap(inflation_radius_m=shared.INFLATION_RADIUS_M)
+
         grid_now = getattr(shared, "costmap", None)  # if you keep an inflated costmap
         if grid_now is None:
-            grid_now = shared.global_occupancy       # fallback to raw occupancy
-        self.plan_grid = grid_now 
+            grid_now = shared.global_occupancy  # fallback to raw occupancy
+        self.plan_grid = grid_now
+
         # still block if the target cell itself is hard-blocked in the planning grid
         way_g = meters_to_grid(waypoint[0], waypoint[1], self.plan_grid, MAP_RES)
-        wy = min(max(way_g[1], 0), self.plan_grid.shape[0]-1)
-        wx = min(max(way_g[0], 0), self.plan_grid.shape[1]-1)
+        wy = min(max(way_g[1], 0), self.plan_grid.shape[0] - 1)
+        wx = min(max(way_g[0], 0), self.plan_grid.shape[1] - 1)
         # treat any non-free (>0) as blocked if you're using an inflated costmap
         if float(self.plan_grid[wy, wx]) >= 0.99:
             return "replanned"
@@ -123,13 +147,16 @@ class PathExecutor:
         align_tol = 0.10
         if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
             await motion.stop()
-            # await asyncio.sleep(1)
             return "MOVING"
 
         # --- compute intended motion BEFORE obstacle check ---
-        move = "Diagonal" if (abs(dx) > align_tol and abs(dy) > align_tol) else \
-               ("Horizontal" if abs(dx) >= abs(dy) else "Vertical")
+        move = (
+            "Diagonal"
+            if (abs(dx) > align_tol and abs(dy) > align_tol)
+            else ("Horizontal" if abs(dx) >= abs(dy) else "Vertical")
+        )
         print("reached checking sensors")
+
         # --- read obstacles ONCE ---
         dirs, robot_info = check_sensors_for_obstacle(dx, dy, Robot)
         x_dir, y_dir, frdiag, brdiag = dirs
@@ -139,37 +166,40 @@ class PathExecutor:
         # --- ROBOT obstacle branch ---
         if robot_name_hit:
             blocker = robot_name_hit
-            # decide axis & side to request based on the robot direction
+
             if robot_dir_hit in ["left", "right", "front-left", "back-left", "front-right", "back-right"]:
                 # For left/right or diagonal including left/right, clear X
-                # Choose side consistent with where we intend to go (dx), fall back to the seen side
                 block_direction = ("left" if (dx > 0 or "left" in robot_dir_hit) else "right")
                 await motion.stop()
                 print(f"Requesting {blocker} to clear path (X-axis, {block_direction})")
-                parked = await request_robot_to_clear(self.sim, (goal_coords[0], goal_coords[1]), Robot, blocker, block_direction)
-                if parked: return None
-                await motion.stop(); return "replanned"
+                parked = await request_robot_to_clear(
+                    self.sim, (goal_coords[0], goal_coords[1]), Robot, blocker, block_direction
+                )
+                if parked:
+                    return None
+                await motion.stop()
+                return "replanned"
 
             if robot_dir_hit in ["front", "back"]:
                 block_direction = ("front" if (dy < 0 or robot_dir_hit == "front") else "back")
                 await motion.stop()
                 print(f"Requesting {blocker} to clear path (Y-axis, {block_direction})")
-                parked = await request_robot_to_clear(self.sim, (goal_coords[0], goal_coords[1]), Robot, blocker, block_direction)
-                if parked: return None
-                await motion.stop(); return "replanned"
-            
+                parked = await request_robot_to_clear(
+                    self.sim, (goal_coords[0], goal_coords[1]), Robot, blocker, block_direction
+                )
+                if parked:
+                    return None
+                await motion.stop()
+                return "replanned"
 
-        # --- NON-robot obstacles ---
-        # 1) If cardinal blocks exist, use your old logic
         # --- NON-robot obstacles: PAUSE and ask LLM/user ---
         non_robot_blocked = (
-            (x_dir != "Free" and abs(dx) > 0) or
-            (y_dir != "Free" and abs(dy) > 0) or
-            ((frdiag != "Free" or brdiag != "Free") and (abs(dx) > 0 and abs(dy) > 0))
+            (x_dir != "Free" and abs(dx) > 0)
+            or (y_dir != "Free" and abs(dy) > 0)
+            or ((frdiag != "Free" or brdiag != "Free") and (abs(dx) > 0 and abs(dy) > 0))
         )
         if non_robot_blocked:
             await motion.stop()
-            # choose a representative blocked direction for context
             blocked_dir = x_dir if x_dir != "Free" else (y_dir if y_dir != "Free" else (frdiag if frdiag != "Free" else brdiag))
             decision = await self._await_llm_decision(Robot, blocked_dir)
 
@@ -178,7 +208,6 @@ class PathExecutor:
                 return "FAILED"
 
             if decision == "REPLAN":
-                # new goal or go_home will be handled by the main planning loop
                 await motion.stop()
                 return "replanned"
 
@@ -187,7 +216,6 @@ class PathExecutor:
                 dirs2, _ = check_sensors_for_obstacle(dx, dy, Robot)
                 x2, y2, fr2, br2 = dirs2
 
-                # if still blocked, try your existing detour logic
                 if (x2 != "Free" and abs(dx) > 0) or (y2 != "Free" and abs(dy) > 0):
                     block = x2 if x2 != "Free" else y2
                     handle = await self.handle_obstacle(Robot, block, dx, dy)
@@ -204,18 +232,18 @@ class PathExecutor:
                     if handle == "CLEARED":
                         return "replanned"
                 # if not blocked anymore, just fall through and continue moving
-
         else:
             print("No obstacles detected; proceeding.")
-                
+
         await self.reset_orientation()
+
         # no obstacle: actually move
         vx, vy = await motion.set_velocity(dx, dy, move)
         print(f" dx = {dx}, dy = {dy}, vx = {vx}, vy = {vy}, move = {move}")
 
     async def handle_obstacle(self, Robot, direction, dx, dy, safety_clear_time: float = 0.6):
         current_pos = await self.get_position()
-        robot_goal  = shared.robot_goal[Robot]
+        robot_goal = shared.robot_goal[Robot]
 
         diag = None  # <-- ensure defined
 
@@ -242,10 +270,10 @@ class PathExecutor:
 
             # cleared if the original 'direction' is not reported in dirs AND not as the robot_dir
             if (direction not in new_dirs) and (robot_dir != direction):
-                print(f"waiting before returning")
+                print("waiting before returning")
                 await asyncio.sleep(5)
                 return "CLEARED"
-            
+
             # for diagonal cases, if we see a left/right component then align on Y instead (your logic)
             if diag and ("right" in new_dirs or "left" in new_dirs):
                 temp_goal = (current_pos[0], robot_goal[1])
@@ -306,17 +334,14 @@ class PathExecutor:
                         action = (cmd.get("action") or "").lower()
                         print(f"📥 LLM action received: {action}")
                         if action == "wait":
-                            # just keep looping
                             pass
                         elif action == "continue":
                             return "CONTINUE"
                         elif action == "stop":
                             return "FAILED"
                         elif action == "go_home":
-                            # main loop will react to 'go_home' or you can set a flag here
                             return "REPLAN"
                         elif action == "set_goal":
-                            # LLM should have written shared_goal.json already
                             return "REPLAN"
 
                     # also accept legacy types from LLM.py for convenience
@@ -324,4 +349,3 @@ class PathExecutor:
                         return "FAILED" if ctype == "stop" else "REPLAN"
 
             await asyncio.sleep(0.2)
-

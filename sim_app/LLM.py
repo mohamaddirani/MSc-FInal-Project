@@ -1,20 +1,47 @@
 # sim_app/LLM.py
+"""
+Voice-driven command interface:
+- Listens via microphone, parses user intent with GPT, and writes command/goal files.
+- Supports move/status/stop/go_home/position/nearest_to_location and obstacle actions.
+"""
+
+import asyncio
+import difflib
 import json
 import os
 import time
-import asyncio
-import difflib
-import speech_recognition as sr
+
 import pyttsx3
+import speech_recognition as sr
 from dotenv import load_dotenv
 from openai import OpenAI
 
 import sim_app.shared as shared
 
+
+# ============================================================================
+# Setup
+# ============================================================================
+
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ===== Location map (as you had) =====
+recognizer = sr.Recognizer()
+engine = pyttsx3.init()
+
+# Files shared with main loop
+CMD_FILE = "shared_cmd.json"
+GOAL_FILE = "shared_goal.json"
+REPLY_FILE = "shared_reply.json"
+
+USE_WHISPER = True  # (kept for parity with your original constant)
+
+
+# ============================================================================
+# Locations & robots
+# ============================================================================
+
+# Location map (as you had)
 location_map = {
     "Meetings Table": (-1.500, -7.000),
     "Office Table": (-2.000, 2.000),
@@ -35,20 +62,20 @@ location_map = {
 
 robot_list = ["Rob0", "Rob1", "Rob2"]
 
-CMD_FILE = "shared_cmd.json"
-GOAL_FILE = "shared_goal.json"
-REPLY_FILE = "shared_reply.json"
-USE_WHISPER = True
 
-recognizer = sr.Recognizer()
-engine = pyttsx3.init()
+# ============================================================================
+# Speech helpers
+# ============================================================================
 
-def speak(text):
+def speak(text: str) -> None:
+    """TTS helper: say and print the same text."""
     print(text)
     engine.say(text)
     engine.runAndWait()
 
-def listen():
+
+def listen() -> str | None:
+    """Capture audio from mic and return a lowercase transcript (Google SR)."""
     with sr.Microphone() as source:
         print("Listening...")
         audio = recognizer.listen(source)
@@ -67,6 +94,11 @@ def listen():
         print("- Try running on a different network.")
         return None
 
+
+# ============================================================================
+# Parsing & mapping
+# ============================================================================
+
 def parse_command_with_gpt(text: str):
     """
     The model returns ONE of these intent payloads:
@@ -83,7 +115,6 @@ def parse_command_with_gpt(text: str):
     }
 
     { "intent": "stop", "robot_id": "Rob1" }          # force stop
-
     { "intent": "go_home", "robot_id": "Rob0" }       # return to start
 
     {
@@ -97,10 +128,10 @@ def parse_command_with_gpt(text: str):
     }
 
     {
-        "intent": "obstacle_action",
-        "robot_id": "RobX" or null,
-        "action": "wait" | "continue" | "stop" | "go_home" | "set_goal",
-        "destination": "<valid location>"  # required only when action == "set_goal"
+      "intent": "obstacle_action",
+      "robot_id": "RobX" or null,
+      "action": "wait" | "continue" | "stop" | "go_home" | "set_goal",
+      "destination": "<valid location>"  # required only when action == "set_goal"
     }
     """
     prompt = f"""
@@ -138,17 +169,21 @@ Respond with JSON only.
 """
     response = client.chat.completions.create(
         model="gpt-4o-mini",  # small, fast
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
     )
     reply = response.choices[0].message.content.strip()
+
+    # Trim code fences or leading 'json'
     if reply.startswith("```"):
         reply = reply.split("```")[1].strip()
     if reply.lower().startswith("json"):
         reply = reply[4:].strip()
+
     print("🤖 GPT Output:", reply)
     return json.loads(reply)
 
-def fuzzy_label(label: str):
+
+def fuzzy_label(label: str) -> str | None:
     """Return the nearest valid location label, or None."""
     if not label:
         return None
@@ -156,7 +191,8 @@ def fuzzy_label(label: str):
     match = difflib.get_close_matches(label, keys, n=1, cutoff=0.5)
     return match[0] if match else None
 
-def coords_for_label(label: str):
+
+def coords_for_label(label: str) -> tuple[str | None, tuple[float, float] | None]:
     """Fuzzy map a label to coordinates."""
     best = fuzzy_label(label)
     if not best:
@@ -164,30 +200,41 @@ def coords_for_label(label: str):
         return None, None
     return best, location_map[best]
 
+
+# ============================================================================
+# File IO to talk with main loop
+# ============================================================================
+
 async def send_move_goal(sim, robot_id, dest_label):
+    """Write a move goal to GOAL_FILE; 'auto' dispatch if robot_id is None."""
     label, coords = coords_for_label(dest_label)
     if not coords:
         print("🛑 Invalid location. Try again.")
         return
+
     if robot_id:
         robot_id = robot_id.replace("Robot", "Rob")  # sanitize
-    payload = { (robot_id or "auto"): coords }  # main.py handles 'auto' by nearest idle
+
+    payload = {(robot_id or "auto"): coords}  # main.py handles 'auto' by nearest idle
     print(f"🚀 Move: {robot_id or 'auto'} -> {label} @ {coords}")
     with open(GOAL_FILE, "w") as f:
         json.dump(payload, f)
 
-def write_cmd(obj: dict):
-    # overwrite any previous pending command
+
+def write_cmd(obj: dict) -> None:
+    """Overwrite any previous pending command."""
     with open(CMD_FILE, "w") as f:
         json.dump(obj, f)
 
+
 def try_read_reply():
+    """Read and delete the shared reply file; return its JSON or None."""
     if not os.path.exists(REPLY_FILE):
         return None
     try:
         with open(REPLY_FILE, "r") as f:
             data = json.load(f)
-        # best‑effort cleanup
+        # best-effort cleanup
         try:
             os.remove(REPLY_FILE)
         except Exception:
@@ -197,7 +244,13 @@ def try_read_reply():
         print(f"⚠️ Failed to read reply: {e}")
         return None
 
+
+# ============================================================================
+# Main async loop
+# ============================================================================
+
 async def main_loop(sim):
+    """Listen for voice commands, parse with GPT, and write goals/commands."""
     print("🤖 LLM Command Listener is active. Press Ctrl+C to stop.")
     while True:
         try:
@@ -223,7 +276,7 @@ async def main_loop(sim):
 
             elif intent == "go_home":
                 write_cmd({"type": "go_home", "robot_id": parsed.get("robot_id")})
-                print(f"🏠 Go‑home sent to {parsed.get('robot_id')}")
+                print(f"🏠 Go-home sent to {parsed.get('robot_id')}")
 
             elif intent == "position":
                 write_cmd({"type": "position", "robot_id": parsed.get("robot_id")})
@@ -247,19 +300,21 @@ async def main_loop(sim):
                 rid = parsed.get("robot_id")
                 if rid:
                     rid = rid.replace("Robot", "Rob")
-                # write a simple command the executor can read
+
+                # Write a simple command the executor can read
                 write_cmd({
                     "type": "obstacle_action",
-                    "robot_id": rid,              # or None to target the paused one
+                    "robot_id": rid,  # or None to target the paused one
                     "action": action,
-                    "destination": parsed.get("destination")
+                    "destination": parsed.get("destination"),
                 })
-                # if the action is "set_goal", also update shared_goal.json so planner can replan
+
+                # If the action is "set_goal", also update shared_goal.json so planner can replan
                 if action == "set_goal":
                     dest = parsed.get("destination")
                     label, coords = coords_for_label(dest)
                     if coords:
-                        payload = { (rid or "auto"): coords }
+                        payload = {(rid or "auto"): coords}
                         with open(GOAL_FILE, "w") as f:
                             json.dump(payload, f)
                         speak(f"Setting new goal {label}.")
@@ -276,7 +331,6 @@ async def main_loop(sim):
                 elif action == "continue":
                     speak("Continuing with obstacle handling.")
 
-
             else:
                 print("🤷 Unrecognized intent:", parsed)
 
@@ -286,10 +340,16 @@ async def main_loop(sim):
             print("\n👋 Stopping LLM listener.")
             break
 
+
+# ============================================================================
+# Entrypoint
+# ============================================================================
+
 if __name__ == "__main__":
-    import asyncio
     from sim_app.sim_client import get_sim
+
     async def start():
         client, sim = await get_sim()
         await main_loop(sim)
+
     asyncio.run(start())
