@@ -1,9 +1,51 @@
 # sim_app/obstacle_awareness.py
 import sim_app.shared as shared
 import math
+import os
+from sim_app.astar_env import meters_to_grid
+
 
 THRESHOLD_M = 0.75      # max range to consider "blocking"
 DIAG_RATIO  = 1      # how strongly horizontal/vertical must dominate to *avoid* a diagonal
+
+
+# candidate file locations
+OCCUPIED_FILE_CANDIDATES = [
+    os.path.join(os.path.dirname(__file__), "occupied_grids.txt"),
+    "/mnt/data/occupied_grids.txt",
+]
+
+def _load_occupied_grids(paths=OCCUPIED_FILE_CANDIDATES):
+    occ = set()
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        with open(path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line[0] != "(" or "," not in line:
+                    continue
+                try:
+                    gx, gy = line.strip("()").split(",")
+                    occ.add((int(gx), int(gy)))
+                except Exception:
+                    pass
+        if occ:
+            print(f"✅ loaded {len(occ)} occupied cells from: {path}")
+            break
+    if not occ:
+        print("⚠️ no occupied_grids.txt found; every obstacle will be considered.")
+    return occ
+
+_OCCUPIED_CELLS = _load_occupied_grids()
+
+def _obstacle_in_occupied_file(px: float, py: float) -> bool:
+    """Return True if world (px,py) corresponds to a grid in occupied_grids.txt"""
+    g = shared.global_occupancy
+    res = shared.MAP_RESOLUTION
+    gx, gy = meters_to_grid(px, py, g, res)
+    return (gx, gy) in _OCCUPIED_CELLS
+
 
 def _iter_points(robot_name):
     for sig in (f"{robot_name}_S300_combined_data",
@@ -43,21 +85,36 @@ def is_obstacle_robot(px, py, active_robot, threshold=1.0):
             return robot_name
     return None
 
+# --- map a status tuple to "is that direction blocked?" --------------------
+def _status_blocks_dir(statuses, direction: str) -> bool:
+    x_status, y_status, frdiag_status, brdiag_status = statuses
+    if direction in ("left", "right"):
+        return x_status == direction
+    if direction in ("front", "back"):
+        return y_status == direction
+    if direction in ("front-left", "front-right"):
+        return frdiag_status == direction
+    if direction in ("back-left", "back-right"):
+        return brdiag_status == direction
+    return False
+
 def is_path_clear(direction, robot_name):
     """
-    Kept for backward compatibility with your other code.
-    direction can be: "Free", any of the 4 cardinals, or one of the diagonals.
+    Use the same filtered view as check_sensors_for_obstacle()
+    so occupied_grids.txt is respected here too.
     """
     if direction == "Free":
         return True
-    # If a robot is encoded as "RobX", it's not clear
-    if isinstance(direction, str) and direction.startswith("Rob"):
+
+    statuses, (robot_hit, robot_dir) = check_sensors_for_obstacle(0.0, 0.0, robot_name)
+
+    # robot present in that exact sector? then not clear
+    if robot_hit and robot_dir == direction:
         return False
-    for pt in _iter_points(robot_name):
-        d8 = _direction8_of_point(pt)
-        if d8 == direction:
-            return False
-    return True
+
+    # otherwise rely on the filtered statuses (static obstacles already ignored)
+    return not _status_blocks_dir(statuses, direction)
+
 
 def check_sensors_for_obstacle(dx, dy, robot_name):
     """
@@ -88,13 +145,11 @@ def check_sensors_for_obstacle(dx, dy, robot_name):
         if not d8:
             continue
 
-        # mark generic obstacle in that direction
-        seen[d8] = True
-
-        # compute world point for robot check
+        # world point for this hit
         rx, ry = shared.robot_positions.get(robot_name, (0.0, 0.0))
         px, py = rx + pt[0], ry + pt[1]
 
+        # 1) robot check
         other_robot = is_obstacle_robot(px, py, robot_name)
         if other_robot:
             d = math.hypot(pt[0], pt[1])
@@ -102,6 +157,18 @@ def check_sensors_for_obstacle(dx, dy, robot_name):
                 robot_min_d = d
                 robot_name_hit = other_robot
                 robot_dir_hit  = d8
+            # NOTE: robot still counts as an obstacle in that sector:
+            seen[d8] = True
+            continue
+
+        # 2) static-ignore check from occupied_grids.txt
+        if _obstacle_in_occupied_file(px, py):
+            # optional debug:
+            # print(f"ℹ️ Ignoring obstacle @grid in occupied_grids: {meters_to_grid(px, py, shared.global_occupancy, shared.MAP_RESOLUTION)} dir={d8}")
+            continue
+
+        # 3) finally mark as seen only if not ignored
+        seen[d8] = True
 
     # Compose the 4-tuple (as list) for the first element
     # X status: prefer reporting the side that has an obstacle; if both, pick the nearer conceptually.

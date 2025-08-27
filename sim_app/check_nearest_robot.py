@@ -11,7 +11,7 @@ from sim_app.path_executor import PathExecutor
 from sim_app.astar import AStar
 import sim_app.robot_motion as OmniRobotMotion
 from sim_app.map_builder import get_planning_costmap
-
+from sim_app.path_viz import plot_paths_once
 
 ROBOT_IDS = ["Rob0", "Rob1", "Rob2"]
 ID_TO_MODEL = {"Rob0": "Omnirob0", "Rob1": "Omnirob1", "Rob2": "Omnirob2"}
@@ -58,8 +58,10 @@ async def plan_path(start_pos, goal_pos, robot_name):
         start_grid,
         goal_grid,
         res,
-        block_threshold=0.99,
-        soft_cost_gain=0.5
+        block_threshold=0.99,        # keep binary blocking strict
+        soft_cost_gain=None,         # we are using proximity cost instead
+        proximity_k_cells=3,         # rings to look around each neighbor (3 * 0.20 = 0.60 m)
+        proximity_cost_gain=0.5      # tune 0.5–2.0; higher = keeps farther from walls
     )
     path_g = await asyncio.to_thread(AStar(env).search, "robot")
     if not path_g:
@@ -68,6 +70,7 @@ async def plan_path(start_pos, goal_pos, robot_name):
 
     path_m = [grid_to_meters(x, y, grid, res) for (x, y) in path_g]
     print(f"🚦 A* planned path with {len(path_m)} waypoints.")
+    shared.latest_astar_path_by_robot[robot_name] = list(path_m)
     return path_m, grid
 
 async def find_available_robot(sim, goal_pos):
@@ -152,6 +155,7 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
             shared.robot_abort[robot_name] = False
             await motion.stop()
             shared.robot_status[robot_name] = "idle"
+            plot_paths_once(robot_name)
             return "FAILED"
 
         if result == "replanned":
@@ -161,10 +165,12 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
         if result == "DONE":
             await motion.stop()
             shared.robot_status[robot_name] = "idle"
+            plot_paths_once(robot_name)
             return "DONE"
 
         break
 
     await motion.stop()
     shared.robot_status[robot_name] = "idle"
+    plot_paths_once(robot_name)
     return "FAILED"

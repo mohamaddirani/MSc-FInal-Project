@@ -1,94 +1,67 @@
-# MSc Final Project: LLM-Guided Multi-Agent Robot Navigation in CoppeliaSim
+# MSc Final Project: Multi-Robot Path Planning and Coordination
 
-This repository contains the implementation of a multi-robot navigation system that integrates classical path planning (A\*), real-time obstacle avoidance using simulated LiDAR sensors, and goal assignment driven by a Large Language Model (LLM). The system is built using Python and CoppeliaSim, with asynchronous control logic for coordinating multiple robots in parallel.
+## Overview
+This project implements a multi-robot simulation environment for path planning, obstacle avoidance, and robot coordination using Python. It features:
+- A* path planning and grid-based map representation
+- Dynamic obstacle detection and avoidance
+- Robot-to-robot communication for path clearing
+- Voice interaction via LLM (Large Language Model) integration
+- Visualization tools for grid maps and robot paths
 
-## 🔍 Overview
-
-This project showcases:
-
-* A\* path planning on a dynamic occupancy grid
-* Real-time obstacle detection and avoidance using SICK S300 sensors
-* Robot coordination through cooperative path negotiation
-* Natural language-based goal assignment via GPT-4
-* Modular design for scalability and extensibility
-
-## 📁 Directory Structure
+## Directory Structure
 ```
 MSc-FInal-Project/
-├── main.py                # Entry point for robot coordination and simulation
-├── a_star.py              # A* path planning algorithm implementation
-├── astart_env.py          # Environment wrapper for A* algorithm
-├── map_builder.py         # Occupancy grid construction from sensor data
-├── robot_controller.py    # Robot movement and axis alignment logic
-├── sensor_fetch.py        # Interfaces with SICK S300 sensor data
-├── path_executor.py       # Executes robot motion paths asynchronously
-├── robot_awareness.py     # Cooperative obstacle handling between robots
-├── check_nearest_robot.py # Dynamic path clearance for blocked robots
-└── README.md              # Project documentation
+├── sim_app/                # Main application code
+│   ├── main.py              # Entry point for simulation
+│   ├── LLM.py               # Voice and LLM interaction logic
+│   ├── a_star.py            # A* path planning algorithm implementation
+│   ├── astart_env.py        # Environment wrapper for A* algorithm
+│   ├── robot_controller.py  # Robot movement and axis alignment logic
+│   ├── robots_awareness.py  # Cooperative obstacle handling between robots
+│   ├── obstacle_awareness.py # Obstacle detection and direction logic
+│   ├── sensor_fetch.py      # Interfaces with SICK S300 sensor data
+│   ├── map_builder.py       # Occupancy grid construction from sensor data
+│   ├── plotter.py           # Path and grid visualization
+│   └── shared.py            # Shared state and configuration
+├── RemoteApi/              # Remote API scripts for simulation
+├── Plotter/                 # Additional plotting utilities
+├── Literatures/             # Reference papers and documentation
+├── Reports/                 # Project reports and appendices
+└── scenes/                 # Simulation scenes and videos
 ```
-## ✅ Features
+## Key Features
+- **Path Planning:** Uses A* algorithm with accurate grid-to-meter conversion.
+- **Obstacle Avoidance:** Real-time detection of static and dynamic obstacles, including other robots.
+- **Parking Logic:** Robots can request others to clear the path and park in validated free spots.
+- **Voice Interaction:** Control robots and query status using voice commands (LLM integration).
+- **Visualization:** Interactive HTML grid viewer and export tools for free/occupied cells.
 
-* Multi-robot navigation with independent goals
-* Asynchronous movement execution using asyncio
-* Real-time feedback control using simulated LiDAR sensors
-* Deadlock resolution through path and position awareness
-* Modular Python scripts for easy adaptation and debugging
-
-## ⚙️ Requirements
-
-* Python 3.9+
-* CoppeliaSim (latest version with ZeroMQ Remote API)
-* Python dependencies:
-
-  ```bash
-  pip install numpy zmq asyncio matplotlib
-  ```
-
-## 🚀 How to Run
-
-1. Open the simulation scene in CoppeliaSim
-2. Start the simulation engine
-3. Run the main control script:
-
+## How to Run
+1. Install Python 3.10+ and required packages (see below).
+2. Run the main simulation:
    ```bash
-   python main.py
+   python -m sim_app.main
+   ```
+3. For LLM/voice features:
+   ```bash
+   python -m sim_app.LLM
+   ```
+4. To export grid data:
+   ```bash
+   python sim_app/npz_to_graph.py
    ```
 
-Robots will begin navigating to assigned goals with obstacle awareness and cooperative movement.
+## Requirements
+- Python 3.10+
+- numpy
+- Other dependencies as listed in your environment (e.g., speech_recognition, pyttsx3)
 
-## 🤖 Sensor Configuration
+## References
+- See `Literatures/` for related research papers.
+- See `Reports/` for project documentation and appendices.
 
-Each robot is equipped with 4 SICK S300 vision sensors:
-
-* `S3001_sensor1`: Front
-* `S3001_sensor2`: Right
-* `S300_sensor1`: Back
-* `S300_sensor2`: Left
-
-These sensors enable 360° awareness for reactive path adjustment.
-
-## 🧠 LLM Integration
-
-The project includes the capability to interface with an LLM (such as GPT-4) for:
-
-* Interpreting natural language goal input
-* Assigning coordinates to robots dynamically
-* Supporting human-in-the-loop robot control
-
-## 📌 Future Enhancements
-
-* Add SLAM support for real-world deployment
-* Integrate GUI for manual or voice-based goal input
-* Replace A\* with learning-based or dynamic planners
-* Evaluate performance across complex multi-agent scenarios
-
-## 👤 Author
-
-**Mohamad Dirani**
-MSc Robotics and Artificial Intelligence
-University of Hertfordshire
+## Author
+**Mohamad Dirani**  
+MSc Robotics and Artificial Intelligence  
+University of Hertfordshire  
 GitHub: [@mohamaddirani](https://github.com/mohamaddirani)
-
-## 📄 License
-
-This project is provided for academic purposes only. Contact the author for reuse or collaboration opportunities.

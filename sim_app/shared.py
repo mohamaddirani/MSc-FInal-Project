@@ -82,8 +82,9 @@ latest_data     = defaultdict(list)
 all_sensor_data = defaultdict(list)
 
 latest_astar_path: list = []
-executed_path:     list = []
-planned_path:      list = []
+latest_astar_path_by_robot = defaultdict(list)
+planned_path_by_robot      = defaultdict(list)  
+executed_path_by_robot     = defaultdict(list)
 temp_parking = {}
 
 robot_start_positions = {

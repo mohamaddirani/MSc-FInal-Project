@@ -26,8 +26,8 @@ location_map = {
     "Office Rack": (-4.500, 0.000),
     "Rack A": (8.000, -5.000),
     "Rack B": (5.000, -5.000),
-    "Rack C": (8.000, -9.000),
-    "Rack D": (5.000, -9.000),
+    "Rack C": (8.000, -8.500),
+    "Rack D": (5.000, -8.500),
     "Rack 1": (3.000, -2.000),
     "Rack 2": (3.000, -6.000),
     "Rack 3": (3.000, -10.000),
@@ -94,6 +94,13 @@ def parse_command_with_gpt(text: str):
     {
       "intent": "nearest_to_location",
       "location_label": "Rack 1"
+    }
+
+    {
+        "intent": "obstacle_action",
+        "robot_id": "RobX" or null,
+        "action": "wait" | "continue" | "stop" | "go_home" | "set_goal",
+        "destination": "<valid location>"  # required only when action == "set_goal"
     }
     """
     prompt = f"""
@@ -234,6 +241,41 @@ async def main_loop(sim):
                     await asyncio.sleep(0.2)
                     reply = try_read_reply()
                     print("🤖 Nearest robot:", reply or "(no reply)")
+
+            elif intent == "obstacle_action":
+                action = (parsed.get("action") or "").lower()
+                rid = parsed.get("robot_id")
+                if rid:
+                    rid = rid.replace("Robot", "Rob")
+                # write a simple command the executor can read
+                write_cmd({
+                    "type": "obstacle_action",
+                    "robot_id": rid,              # or None to target the paused one
+                    "action": action,
+                    "destination": parsed.get("destination")
+                })
+                # if the action is "set_goal", also update shared_goal.json so planner can replan
+                if action == "set_goal":
+                    dest = parsed.get("destination")
+                    label, coords = coords_for_label(dest)
+                    if coords:
+                        payload = { (rid or "auto"): coords }
+                        with open(GOAL_FILE, "w") as f:
+                            json.dump(payload, f)
+                        speak(f"Setting new goal {label}.")
+                    else:
+                        speak("Unknown destination.")
+                elif action == "go_home":
+                    write_cmd({"type": "go_home", "robot_id": rid})
+                    speak("Going home.")
+                elif action == "stop":
+                    write_cmd({"type": "stop", "robot_id": rid})
+                    speak("Stopping.")
+                elif action == "wait":
+                    speak("Waiting for the path to clear.")
+                elif action == "continue":
+                    speak("Continuing with obstacle handling.")
+
 
             else:
                 print("🤷 Unrecognized intent:", parsed)

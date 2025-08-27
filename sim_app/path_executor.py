@@ -2,7 +2,7 @@
 from datetime import time
 from time import time
 import asyncio, math, numpy as np
-
+import os, json
 from sim_app.obstacle_awareness import is_path_clear, check_sensors_for_obstacle
 from sim_app.sensor_fetch import fetch_sensor_data
 from sim_app import shared
@@ -18,6 +18,8 @@ goal_error_threshold = 0.1
 speed = 100*math.pi/180
 MAP_RES = shared.MAP_RESOLUTION
 
+CMD_FILE = "shared_cmd.json"     # same as LLM.py
+GOAL_FILE = "shared_goal.json"   # LLM may set a new goal here
 
 
 def world_to_body(vx_w, vy_w, yaw):
@@ -61,6 +63,7 @@ class PathExecutor:
                 result = await self.move_to_goal(waypoint)
                 if result is not None:
                     if result == "MOVING":
+                        
                         break
                     elif result in ["replanned", "FAILED"]:
                         return result
@@ -84,7 +87,8 @@ class PathExecutor:
         await self.reset_orientation()
         current = await self.get_position()
         shared.robot_positions[Robot] = tuple(current)
-        shared.executed_path.append(current)
+        shared.executed_path_by_robot[Robot].append(tuple(current))
+        shared.latest_astar_path_by_robot[Robot].append(tuple(waypoint))
 
         dx = waypoint[0] - current[0]
         dy = waypoint[1] - current[1]
@@ -112,13 +116,14 @@ class PathExecutor:
         wy = min(max(way_g[1], 0), self.plan_grid.shape[0]-1)
         wx = min(max(way_g[0], 0), self.plan_grid.shape[1]-1)
         # treat any non-free (>0) as blocked if you're using an inflated costmap
-        if self.plan_grid[wy, wx] >= 1 or self.plan_grid[wy, wx] > 0:
+        if float(self.plan_grid[wy, wx]) >= 0.99:
             return "replanned"
 
         # reached waypoint?
         align_tol = 0.10
         if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
             await motion.stop()
+            # await asyncio.sleep(1)
             return "MOVING"
 
         # --- compute intended motion BEFORE obstacle check ---
@@ -156,31 +161,50 @@ class PathExecutor:
 
         # --- NON-robot obstacles ---
         # 1) If cardinal blocks exist, use your old logic
-        if (x_dir != "Free" and abs(dx) > 0) or (y_dir != "Free" and abs(dy) > 0):
+        # --- NON-robot obstacles: PAUSE and ask LLM/user ---
+        non_robot_blocked = (
+            (x_dir != "Free" and abs(dx) > 0) or
+            (y_dir != "Free" and abs(dy) > 0) or
+            ((frdiag != "Free" or brdiag != "Free") and (abs(dx) > 0 and abs(dy) > 0))
+        )
+        if non_robot_blocked:
             await motion.stop()
-            print("NON-robot obstacles (cardinal)")
-            if not is_path_clear(x_dir, Robot) and not is_path_clear(y_dir, Robot):
-                return "replanned"
-            else:
-                # prefer handling the axis that's blocked; fall back to the other
-                block = x_dir if x_dir != "Free" else y_dir
-                handle = await self.handle_obstacle(Robot, block, dx, dy)
-                if handle == "CLEARED": return "replanned"
-                elif handle is not None:   return handle
-        else:
-            print("No obstacles detected; proceeding.")
+            # choose a representative blocked direction for context
+            blocked_dir = x_dir if x_dir != "Free" else (y_dir if y_dir != "Free" else (frdiag if frdiag != "Free" else brdiag))
+            decision = await self._await_llm_decision(Robot, blocked_dir)
 
-        # 2) If only diagonals are blocked, act on the blocked diagonal
-        diag_block = frdiag if frdiag != "Free" else (brdiag if brdiag != "Free" else "Free")
-        if diag_block != "Free" and (abs(dx) > 0 and abs(dy) > 0):
-            if (diag_block == "front-left" and dy < 0 and dx > 0) or (diag_block == "front-right" and dy < 0 and dx < 0) or (diag_block == "back-left" and dy > 0 and dx > 0) or (diag_block == "back-right" and dy > 0 and dx < 0):
+            if decision == "FAILED":
                 await motion.stop()
-                print(f"NON-robot obstacles (diagonal): {diag_block}")
-                handle = await self.handle_obstacle(Robot, diag_block, dx, dy)
-                if handle == "CLEARED":
-                    return "replanned"   # detoured; now plan cleanly from the new pose
-                elif handle is not None:
-                    return handle
+                return "FAILED"
+
+            if decision == "REPLAN":
+                # new goal or go_home will be handled by the main planning loop
+                await motion.stop()
+                return "replanned"
+
+            if decision in ("CLEARED_AUTO", "CONTINUE"):
+                # resume automatic obstacle handler if still blocked
+                dirs2, _ = check_sensors_for_obstacle(dx, dy, Robot)
+                x2, y2, fr2, br2 = dirs2
+
+                # if still blocked, try your existing detour logic
+                if (x2 != "Free" and abs(dx) > 0) or (y2 != "Free" and abs(dy) > 0):
+                    block = x2 if x2 != "Free" else y2
+                    handle = await self.handle_obstacle(Robot, block, dx, dy)
+                    if handle in ("replanned", "FAILED"):
+                        return handle
+                    if handle == "CLEARED":
+                        return "replanned"
+
+                diag2 = fr2 if fr2 != "Free" else (br2 if br2 != "Free" else "Free")
+                if diag2 != "Free" and (abs(dx) > 0 and abs(dy) > 0):
+                    handle = await self.handle_obstacle(Robot, diag2, dx, dy)
+                    if handle in ("replanned", "FAILED"):
+                        return handle
+                    if handle == "CLEARED":
+                        return "replanned"
+                # if not blocked anymore, just fall through and continue moving
+
         else:
             print("No obstacles detected; proceeding.")
                 
@@ -188,9 +212,6 @@ class PathExecutor:
         # no obstacle: actually move
         vx, vy = await motion.set_velocity(dx, dy, move)
         print(f" dx = {dx}, dy = {dy}, vx = {vx}, vy = {vy}, move = {move}")
-
-        if abs(dx) < goal_error_threshold and abs(dy) < goal_error_threshold:
-            return "MOVING"
 
     async def handle_obstacle(self, Robot, direction, dx, dy, safety_clear_time: float = 0.6):
         current_pos = await self.get_position()
@@ -237,4 +258,70 @@ class PathExecutor:
 
             await asyncio.sleep(0.01)
 
+    async def _read_and_clear_cmd(self):
+        """Read shared_cmd.json once and clear it. Return dict or None."""
+        if not os.path.exists(self.CMD_FILE):
+            return None
+        try:
+            with open(self.CMD_FILE, "r") as f:
+                data = json.load(f)
+            # best-effort clear so we don't reconsume the same command
+            try:
+                os.remove(self.CMD_FILE)
+            except Exception:
+                pass
+            return data
+        except Exception as e:
+            print(f"⚠️ failed to read {self.CMD_FILE}: {e}")
+            return None
+
+    async def _await_llm_decision(self, robot_name: str, blocked_dir: str):
+        """
+        Wait for user/LLM action on non-robot obstacle.
+        Valid actions:
+          wait      -> keep waiting while periodically checking if clear
+          continue  -> proceed with our automatic handler (detour)
+          stop      -> abort path ("FAILED")
+          go_home   -> request main to send a go_home; return "replanned"
+          set_goal  -> LLM will write shared_goal.json; return "replanned"
+        """
+        print(f"⏸️ {robot_name} paused due to non-robot obstacle ({blocked_dir}). Waiting for LLM…")
+        while True:
+            # 1) if it cleared by itself, just continue
+            dirs, robot_info = check_sensors_for_obstacle(0.0, 0.0, robot_name)
+            if not any(d == blocked_dir for d in dirs):
+                print("🟢 Obstacle cleared during wait.")
+                return "CLEARED_AUTO"
+
+            # 2) check for a command
+            cmd = await self._read_and_clear_cmd()
+            if cmd:
+                ctype = cmd.get("type")
+                target = cmd.get("robot_id")
+                if target and target != robot_name:
+                    # command for a different robot; ignore
+                    pass
+                else:
+                    if ctype == "obstacle_action":
+                        action = (cmd.get("action") or "").lower()
+                        print(f"📥 LLM action received: {action}")
+                        if action == "wait":
+                            # just keep looping
+                            pass
+                        elif action == "continue":
+                            return "CONTINUE"
+                        elif action == "stop":
+                            return "FAILED"
+                        elif action == "go_home":
+                            # main loop will react to 'go_home' or you can set a flag here
+                            return "REPLAN"
+                        elif action == "set_goal":
+                            # LLM should have written shared_goal.json already
+                            return "REPLAN"
+
+                    # also accept legacy types from LLM.py for convenience
+                    if ctype in ("stop", "go_home"):
+                        return "FAILED" if ctype == "stop" else "REPLAN"
+
+            await asyncio.sleep(0.2)
 

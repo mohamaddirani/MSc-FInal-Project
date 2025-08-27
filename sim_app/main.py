@@ -4,6 +4,7 @@ from sim_app.sim_client import get_sim
 from sim_app import shared
 from sim_app.check_nearest_robot import excute
 from sim_app.robot_controller import OmniRobotController
+from sim_app.path_viz import live_plotter
 
 ROBOT_IDS = ["Rob0", "Rob1", "Rob2"]
 ID_TO_MODEL = {"Rob0": "Omnirob0", "Rob1": "Omnirob1", "Rob2": "Omnirob2"}
@@ -175,6 +176,8 @@ async def run():
     await any_sim.startSimulation()
     print("✅ Connected & simulation started")
 
+    for rid in ROBOT_IDS:
+        asyncio.create_task(live_plotter(rid, period_s=0.5))
     active_tasks = {}
 
     try:
