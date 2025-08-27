@@ -14,7 +14,7 @@ MSc-FInal-Project/
 ├── sim_app/                # Main application code
 │   ├── main.py              # Entry point for simulation
 │   ├── LLM.py               # Voice and LLM interaction logic
-│   ├── astar.py             # A* path planning algorithm implementation
+│   ├── astar.py             # A* path planning algorithm implementation (see reference below)
 │   ├── astar_env.py         # Environment wrapper for A* algorithm
 │   ├── robot_controller.py  # Robot movement and axis alignment logic
 │   ├── robots_awareness.py  # Cooperative obstacle handling between robots
@@ -63,6 +63,7 @@ MSc-FInal-Project/
 ## References
 - See `Literatures/` for related research papers.
 - See `Reports/` for project documentation and appendices.
+- A* implementation reference: [atb033/multi_agent_path_planning - centralized/cbs/a_star.py](https://github.com/atb033/multi_agent_path_planning/blob/master/centralized/cbs/a_star.py)
 
 ## Author
 **Mohamad Dirani**  
