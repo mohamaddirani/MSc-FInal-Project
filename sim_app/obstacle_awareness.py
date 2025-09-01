@@ -21,8 +21,8 @@ from sim_app.astar_env import meters_to_grid
 # Config
 # ============================================================================
 
-THRESHOLD_M = 0.75  # max range to consider "blocking"
-DIAG_RATIO = 1      # dominance ratio to prefer cardinal over diagonal
+THRESHOLD_M = 1.0  # max range to consider "blocking"
+DIAG_RATIO = 1.2      # dominance ratio to prefer cardinal over diagonal
 
 # Candidate file locations
 OCCUPIED_FILE_CANDIDATES = [
@@ -216,9 +216,9 @@ def check_sensors_for_obstacle(dx, dy, robot_name):
         seen[d8] = True
 
     # Compose the 4-tuple (as list) for the first element
-    x_status = "left" if seen["left"] else ("right" if seen["right"] else "Free")
-    y_status = "back" if seen["back"] else ("front" if seen["front"] else "Free")
-    frdiag_status = "front-left" if seen["front-left"] else ("front-right" if seen["front-right"] else "Free")
-    brdiag_status = "back-left" if seen["back-left"] else ("back-right" if seen["back-right"] else "Free")
+    x_status = "left" if (seen["left"] and dx >= 0) else (("right" if seen["right"] and dx <= 0 else "Free"))
+    y_status = "back" if (seen["back"] and dy >= 0) else ("front" if (seen["front"] and dy <= 0) else "Free")
+    frdiag_status = "front-left" if (seen["front-left"] and dx >= 0 and dy <= 0) else ("front-right" if (seen["front-right"] and dx <= 0 and dy < 0) else "Free")
+    brdiag_status = "back-left" if (seen["back-left"] and dx >= 0 and dy >= 0) else ("back-right" if (seen["back-right"] and dx <= 0 and dy >= 0) else "Free")
 
     return [x_status, y_status, frdiag_status, brdiag_status], [robot_name_hit, robot_dir_hit]

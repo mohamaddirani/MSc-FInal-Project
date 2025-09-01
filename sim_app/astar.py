@@ -1,4 +1,15 @@
 # sim_app/astar.py
+#
+# Adapted from:
+#   https://github.com/atb033/multi_agent_path_planning/blob/master/centralized/cbs/a_star.py
+# Author of original: Ashwin Bose (@atb033)
+#
+# Modifications by [Your Name]:
+# - Integrated with sim_app.shared to store latest_astar_path
+# - Added meters conversion via env.cell_to_meters
+# - Adjusted neighbor interface (get_neighbors returns (neighbor, cost))
+# - Simplified search loop for single-robot use case
+
 from sim_app import shared
 
 class AStar:

@@ -95,7 +95,6 @@ class PathExecutor:
         return "DONE"
 
     async def move_to_goal(self, waypoint):
-        print(f"Moving to waypoint: {waypoint}")
         Robot = self.robot
         motion = RobotMotion(self.sim, self.wheels)
 
@@ -110,7 +109,6 @@ class PathExecutor:
         shared.robot_positions[Robot] = tuple(current)
         shared.executed_path_by_robot[Robot].append(tuple(current))
         shared.latest_astar_path_by_robot[Robot].append(tuple(waypoint))
-
         dx = waypoint[0] - current[0]
         dy = waypoint[1] - current[1]
         goal_coords = shared.robot_goal[Robot]
@@ -122,13 +120,13 @@ class PathExecutor:
         # sensor + optional map refresh
         await fetch_sensor_data(self.sim, f"{Robot}_S300_combined_data")
         await fetch_sensor_data(self.sim, f"{Robot}_S3001_combined_data")
-        print("sensor fetched")
         shared.robot_orientation[Robot] = await self.get_orientation()
         shared.robot_positions[Robot] = await self.get_position()
 
         if not shared.FREEZE_MAP:
             update_memory_with_latest(Robot)
             rebuild_costmap(inflation_radius_m=shared.INFLATION_RADIUS_M)
+            shared.maybe_autosave(every_n_updates=25)
 
         grid_now = getattr(shared, "costmap", None)  # if you keep an inflated costmap
         if grid_now is None:
@@ -155,7 +153,7 @@ class PathExecutor:
             if (abs(dx) > align_tol and abs(dy) > align_tol)
             else ("Horizontal" if abs(dx) >= abs(dy) else "Vertical")
         )
-        print("reached checking sensors")
+        
 
         # --- read obstacles ONCE ---
         dirs, robot_info = check_sensors_for_obstacle(dx, dy, Robot)
@@ -232,14 +230,12 @@ class PathExecutor:
                     if handle == "CLEARED":
                         return "replanned"
                 # if not blocked anymore, just fall through and continue moving
-        else:
-            print("No obstacles detected; proceeding.")
 
         await self.reset_orientation()
 
         # no obstacle: actually move
         vx, vy = await motion.set_velocity(dx, dy, move)
-        print(f" dx = {dx}, dy = {dy}, vx = {vx}, vy = {vy}, move = {move}")
+        
 
     async def handle_obstacle(self, Robot, direction, dx, dy, safety_clear_time: float = 0.6):
         current_pos = await self.get_position()
@@ -265,13 +261,13 @@ class PathExecutor:
 
             # refresh pose each loop (so temp_goal uses fresh coords when we switch axes)
             current_pos = await self.get_position()
+            
             new_dirs, new_rob = check_sensors_for_obstacle(dx, dy, Robot)
             robot_dir = new_rob[1] if new_rob else None
 
             # cleared if the original 'direction' is not reported in dirs AND not as the robot_dir
             if (direction not in new_dirs) and (robot_dir != direction):
-                print("waiting before returning")
-                await asyncio.sleep(5)
+                #await asyncio.sleep(5)
                 return "CLEARED"
 
             # for diagonal cases, if we see a left/right component then align on Y instead (your logic)
@@ -287,21 +283,24 @@ class PathExecutor:
             await asyncio.sleep(0.01)
 
     async def _read_and_clear_cmd(self):
-        """Read shared_cmd.json once and clear it. Return dict or None."""
-        if not os.path.exists(self.CMD_FILE):
-            return None
+        """Read shared_cmd.json once and clear it IFF it's an obstacle_action."""
         try:
-            with open(self.CMD_FILE, "r") as f:
+            if not os.path.exists(CMD_FILE):
+                return None
+            with open(CMD_FILE, "r") as f:
                 data = json.load(f)
-            # best-effort clear so we don't reconsume the same command
-            try:
-                os.remove(self.CMD_FILE)
-            except Exception:
-                pass
+            # Only obstacle_action is 'owned' by the executor. Leave other types
+            # (stop/go_home/position/status/nearest...) for main.py to consume.
+            if data.get("type") == "obstacle_action":
+                try:
+                    os.remove(CMD_FILE)
+                except Exception:
+                    pass
             return data
         except Exception as e:
-            print(f"⚠️ failed to read {self.CMD_FILE}: {e}")
+            print(f"⚠️ failed to read {CMD_FILE}: {e}")
             return None
+
 
     async def _await_llm_decision(self, robot_name: str, blocked_dir: str):
         """
@@ -332,17 +331,26 @@ class PathExecutor:
                 else:
                     if ctype == "obstacle_action":
                         action = (cmd.get("action") or "").lower()
+                        target = cmd.get("robot_id")  # could be None
                         print(f"📥 LLM action received: {action}")
+
                         if action == "wait":
-                            pass
+                            pass  # keep waiting
                         elif action == "continue":
                             return "CONTINUE"
                         elif action == "stop":
+                            # Let main.py see/act on the stop if needed, but we can just fail here.
                             return "FAILED"
                         elif action == "go_home":
+                            # If no robot was named, assume it's *this* paused robot.
+                            gohome_rid = target or robot_name
+                            # Write a direct command for main.py and DO NOT delete this file here.
+                            with open(CMD_FILE, "w") as f:
+                                json.dump({"type": "go_home", "robot_id": gohome_rid}, f)
                             return "REPLAN"
                         elif action == "set_goal":
                             return "REPLAN"
+
 
                     # also accept legacy types from LLM.py for convenience
                     if ctype in ("stop", "go_home"):

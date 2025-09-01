@@ -95,6 +95,7 @@ def rebuild_costmap(inflation_radius_m: float = shared.INFLATION_RADIUS_M) -> No
 
     cm = _inflate(shared.global_occupancy, inflation_radius_m, shared.MAP_RESOLUTION)
     shared.global_costmap[:] = cm
+    shared.maybe_autosave(every_n_updates=25)
 
 
 # ============================================================================

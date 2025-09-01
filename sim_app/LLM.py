@@ -34,9 +34,6 @@ CMD_FILE = "shared_cmd.json"
 GOAL_FILE = "shared_goal.json"
 REPLY_FILE = "shared_reply.json"
 
-USE_WHISPER = True  # (kept for parity with your original constant)
-
-
 # ============================================================================
 # Locations & robots
 # ============================================================================
@@ -58,6 +55,7 @@ location_map = {
     "Rack 1": (3.000, -2.000),
     "Rack 2": (3.000, -6.000),
     "Rack 3": (3.000, -10.000),
+    "test" : (7.000, -0.700),
 }
 
 robot_list = ["Rob0", "Rob1", "Rob2"]
@@ -135,12 +133,12 @@ def parse_command_with_gpt(text: str):
     }
     """
     prompt = f"""
-You are a command parser. Output ONLY JSON (no prose). Choose the best intent.
+You are a STRICT command parser. Output ONLY JSON (no prose, no code fences). Choose the single best intent.
 
 Valid location labels: {list(location_map.keys())}
 Valid robots: {robot_list}
 
-Return one of these schemas:
+Return exactly one of these schemas:
 
 1) Move:
 {{
@@ -164,9 +162,45 @@ Return one of these schemas:
 6) Nearest robot to a named location:
 {{ "intent": "nearest_to_location", "location_label": "<valid location>" }}
 
-User text: "{text}"
-Respond with JSON only.
+7) Obstacle control (when user says 'continue', 'wait', 'stop', 'go home', or sets a new goal during an obstacle pause):
+{{
+  "intent": "obstacle_action",
+  "robot_id": "RobX" or null,
+  "action": "wait" | "continue" | "stop" | "go_home" | "set_goal",
+  "destination": "<valid location>"  # REQUIRED only when action == "set_goal"
+}}
+
+Rules:
+- If the user says 'continue', 'keep going', 'proceed', 'handle it', or 'resume' → use intent "obstacle_action" with action "continue".
+- If the user says 'wait' / 'hold on' → "obstacle_action" with action "wait".
+- If the user says 'stop' / 'abort' / 'cancel' → prefer intent "stop" (robot-directed), else "obstacle_action" with action "stop".
+- If the user says 'go home' / 'go back home' / 'return to base' → prefer intent "go_home", else "obstacle_action" with action "go_home".
+- Only use "move" when a valid location label is present. Never invent locations from arbitrary words like 'continue'.
+- Accept robot mentions like 'rob0', 'rob 0', 'robot0' as 'Rob0', etc.
+
+Examples (these are EXAMPLES ONLY; your output must be JSON for the current user text):
+
+User: "rob0 continue"
+→ {{ "intent": "obstacle_action", "robot_id": "Rob0", "action": "continue" }}
+
+User: "continue"
+→ {{ "intent": "obstacle_action", "robot_id": null, "action": "continue" }}
+
+User: "go back home rob2"
+→ {{ "intent": "go_home", "robot_id": "Rob2" }}
+
+User: "set a new goal to rack b for rob1"
+→ {{ "intent": "obstacle_action", "robot_id": "Rob1", "action": "set_goal", "destination": "Rack B" }}
+
+User: "nearest robot to meetings table"
+→ {{ "intent": "nearest_to_location", "location_label": "Meetings Table" }}
+
+Now parse only this user text:
+"{text}"
+
+Output JSON only.
 """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",  # small, fast
         messages=[{"role": "user", "content": prompt}],
@@ -244,6 +278,17 @@ def try_read_reply():
         print(f"⚠️ Failed to read reply: {e}")
         return None
 
+def extract_robot_id_from_text(text: str) -> str | None:
+    """
+    Heuristics to pull a robot id from free text: 'rob0', 'rob 0', 'robot0', 'robot 2', case-insensitive.
+    Returns canonical 'Rob0' / 'Rob1' / 'Rob2' or None.
+    """
+    t = text.lower().replace("-", " ")
+    for i in range(3):
+        patterns = [f"rob{i}", f"rob {i}", f"robot{i}", f"robot {i}"]
+        if any(p in t for p in patterns):
+            return f"Rob{i}"
+    return None
 
 # ============================================================================
 # Main async loop
@@ -252,12 +297,49 @@ def try_read_reply():
 async def main_loop(sim):
     """Listen for voice commands, parse with GPT, and write goals/commands."""
     print("🤖 LLM Command Listener is active. Press Ctrl+C to stop.")
+    #await send_move_goal(sim, "Rob0", "test")  # initial test goal
     while True:
         try:
             text = listen()
             if not text:
                 continue
+            rid_hint = extract_robot_id_from_text(text)  # may be None
+            t = text.lower()            
+            if any(kw in t for kw in ["continue", "keep going", "proceed", "handle it", "resume"]):
+                write_cmd({"type": "obstacle_action", "robot_id": rid_hint, "action": "continue"})
+                speak("Continuing with obstacle handling.")
+                time.sleep(0.3)
+                continue
 
+            if any(kw in t for kw in ["wait", "hold on", "pause here"]):
+                write_cmd({"type": "obstacle_action", "robot_id": rid_hint, "action": "wait"})
+                speak("Waiting for the path to clear.")
+                time.sleep(0.3)
+                continue
+
+            if any(kw in t for kw in ["stop", "abort", "cancel"]):
+                target = rid_hint or None
+                if target:
+                    write_cmd({"type": "stop", "robot_id": target})
+                    speak(f"Stopping {target}.")
+                else:
+                    # no robot specified -> stop is ambiguous; default to obstacle-action stop for the paused one
+                    write_cmd({"type": "obstacle_action", "robot_id": None, "action": "stop"})
+                    speak("Stopping.")
+                time.sleep(0.3)
+                continue
+
+            if any(kw in t for kw in ["go home", "go back home", "return to base", "return home", "back to start"]):
+                target = rid_hint or None
+                if target:
+                    write_cmd({"type": "go_home", "robot_id": target})
+                    speak(f"Sending {target} home.")
+                else:
+                    # if no robot, default to 'auto' home for the currently paused robot via obstacle_action
+                    write_cmd({"type": "obstacle_action", "robot_id": None, "action": "go_home"})
+                    speak("Going home.")
+                time.sleep(0.3)
+                continue
             parsed = parse_command_with_gpt(text)
             intent = (parsed or {}).get("intent")
 
@@ -301,15 +383,29 @@ async def main_loop(sim):
                 if rid:
                     rid = rid.replace("Robot", "Rob")
 
-                # Write a simple command the executor can read
-                write_cmd({
-                    "type": "obstacle_action",
-                    "robot_id": rid,  # or None to target the paused one
-                    "action": action,
-                    "destination": parsed.get("destination"),
-                })
+                if action in ("wait", "continue"):
+                    # obstacle_action is ONLY for the executor to read
+                    write_cmd({
+                        "type": "obstacle_action",
+                        "robot_id": rid,   # None → target the paused robot
+                        "action": action,
+                    })
+                    speak("Waiting for the path to clear." if action == "wait"
+                        else "Continuing with obstacle handling.")
+                    time.sleep(0.3)
+                    continue
 
-                # If the action is "set_goal", also update shared_goal.json so planner can replan
+                if action in ("go_home", "stop"):
+                    # send a *direct* command that main.py understands
+                    if rid is None:
+                        # If user didn't name a robot, try to infer from speech like "rob 0"
+                        rid = extract_robot_id_from_text(text)
+                    write_cmd({"type": "go_home" if action == "go_home" else "stop",
+                            "robot_id": rid})
+                    speak("Going home." if action == "go_home" else "Stopping.")
+                    time.sleep(0.3)
+                    continue
+
                 if action == "set_goal":
                     dest = parsed.get("destination")
                     label, coords = coords_for_label(dest)
@@ -320,21 +416,9 @@ async def main_loop(sim):
                         speak(f"Setting new goal {label}.")
                     else:
                         speak("Unknown destination.")
-                elif action == "go_home":
-                    write_cmd({"type": "go_home", "robot_id": rid})
-                    speak("Going home.")
-                elif action == "stop":
-                    write_cmd({"type": "stop", "robot_id": rid})
-                    speak("Stopping.")
-                elif action == "wait":
-                    speak("Waiting for the path to clear.")
-                elif action == "continue":
-                    speak("Continuing with obstacle handling.")
+                    time.sleep(0.3)
+                    continue
 
-            else:
-                print("🤷 Unrecognized intent:", parsed)
-
-            time.sleep(0.3)
 
         except KeyboardInterrupt:
             print("\n👋 Stopping LLM listener.")

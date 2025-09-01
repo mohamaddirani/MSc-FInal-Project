@@ -36,6 +36,7 @@ LOCATION_MAP = {
     "Rack 1": (3.000, -2.000),
     "Rack 2": (3.000, -6.000),
     "Rack 3": (3.000, -10.000),
+    "test" : (7.000, -0.700),
 }
 
 
@@ -249,6 +250,8 @@ async def run():
             # if a go_home was queued, launch it now as a brand-new goal
             for rid in ROBOT_IDS:
                 home = shared.pending_home.get(rid)
+
+                
                 if home and rid not in active_tasks and shared.robot_status.get(rid) == "idle":
                     shared.pending_home[rid] = None
                     shared.robot_goal[rid] = tuple(home)
@@ -267,7 +270,18 @@ async def run():
         # close all clients cleanly
         for client, _ in conns.values():
             await client.__aexit__(None, None, None)
+    finally:
+        
+        try:
+            if not shared.FREEZE_MAP:
+                shared.save_map()
+                print(f"💾 Map saved to: {shared.MAP_FILE}")
+        except Exception as e:
+            print(f"⚠️ Failed to save map on exit: {e}")
 
+        # close all clients cleanly
+        for client, _ in conns.values():
+            await client.__aexit__(None, None, None)
 
 if __name__ == "__main__":
     import sys

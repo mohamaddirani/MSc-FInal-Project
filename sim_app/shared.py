@@ -20,7 +20,6 @@ GRID_SIZE = 225       # keep odd size so center is an integer cell
 MAP_SIZE_M = GRID_SIZE * MAP_RESOLUTION
 INFLATION_RADIUS_M = 0.10
 FREEZE_MAP = True     # True = use the saved map only; no live updates
-
 PATH_CLEARANCE_M = 0.25
 
 

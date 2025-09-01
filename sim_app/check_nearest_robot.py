@@ -169,7 +169,7 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
     shared.robot_status[robot_name] = "busy"
 
     motion = OmniRobotMotion.RobotMotion(sim, controller.wheels)  # create once
-
+    t0 = None
     max_replans = 8
     for _ in range(max_replans):
         # hard stop requested? stop wheels and exit
@@ -177,7 +177,14 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
             shared.robot_abort[robot_name] = False
             await motion.stop()
             shared.robot_status[robot_name] = "idle"
+            if t0 is not None:
+                elapsed = time() - t0
+                msg = f"⏱️ {robot_name} mission aborted after {elapsed:.2f}s"
+                print(msg)
+                shared.message_log.append(msg)
             return "FAILED"
+        if t0 is None:
+            t0 = time()
 
         # A* offloaded so other robots can plan too
         path_in_meters, plan_grid = await plan_path(start_pos, goal_pos, robot_name)
@@ -185,6 +192,11 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
         if not path_in_meters:
             await motion.stop()
             shared.robot_status[robot_name] = "idle"
+            if t0 is not None:
+                elapsed = time() - t0
+                msg = f"⏱️ {robot_name} mission failed after {elapsed:.2f}s"
+                print(msg)
+                shared.message_log.append(msg)
             return "FAILED"
 
         executor = PathExecutor(sim, robot_name, controller.wheels, controller.robot, plan_grid)
@@ -197,6 +209,11 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
             await motion.stop()
             shared.robot_status[robot_name] = "idle"
             plot_paths_once(robot_name)
+            if t0 is not None:
+                elapsed = time() - t0
+                msg = f"⏱️ {robot_name} mission aborted after {elapsed:.2f}s"
+                print(msg)
+                shared.message_log.append(msg)
             return "FAILED"
 
         if result == "replanned":
@@ -207,6 +224,11 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
             await motion.stop()
             shared.robot_status[robot_name] = "idle"
             plot_paths_once(robot_name)
+            if t0 is not None:
+                elapsed = time() - t0
+                msg = f"⏱️ {robot_name} mission completed in {elapsed:.2f}s"
+                print(msg)
+                shared.message_log.append(msg)
             return "DONE"
 
         break
@@ -214,4 +236,9 @@ async def excute(sim, start_pos, start_ori, robot_name, goal_pos):
     await motion.stop()
     shared.robot_status[robot_name] = "idle"
     plot_paths_once(robot_name)
+    if t0 is not None:
+        elapsed = time() - t0
+        msg = f"⏱️ {robot_name} mission ended after {elapsed:.2f}s (fallthrough)"
+        print(msg)
+        shared.message_log.append(msg)
     return "FAILED"
